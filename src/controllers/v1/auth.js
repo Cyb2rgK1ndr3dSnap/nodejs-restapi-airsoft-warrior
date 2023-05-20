@@ -104,8 +104,18 @@ const getCookie = (req, res) => {
     }
 }
 
+const deleteCookie = () =>{
+    try{
+        res.clearCookie(process.env.COOKIE_NAME);
+        res.redirect(`${process.env.UI_ROOT_URI}`);
+    }catch (err){
+        res.status(500).json(err)
+    }
+}
+
 module.exports = {
     getGoogleAuthURL,
     setCookie,
-    getCookie
+    getCookie,
+    deleteCookie
 }

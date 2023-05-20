@@ -5,9 +5,9 @@ const router = Router()
 //const redirectURI = "google";
 const {
   getGoogleAuthURL,
-  getTokens,
   setCookie,
-  getCookie
+  getCookie,
+  deleteCookie
 } = require("../../controllers/v1/auth")
 
 
@@ -18,9 +18,7 @@ router
 
     .get("/me", getCookie)
 
-    .get(`/logout`, (req,res)=>{
-
-    })
+    .get(`/logout`,deleteCookie)
 
     .post("/register",)
 
