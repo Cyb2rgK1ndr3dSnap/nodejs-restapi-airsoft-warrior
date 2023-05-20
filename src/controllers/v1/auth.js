@@ -79,7 +79,7 @@ const setCookie = async (req, res) => {
       "url_img_user":googleUser.picture,
       "token":token
     }, {
-      domain:`${process.env.UI_ROOT_URI}`,
+      domain:`${process.env.COOKIE_SET_DOMAIN}`,
       maxAge: 900000,
       httpOnly: false,
       secure: true,
