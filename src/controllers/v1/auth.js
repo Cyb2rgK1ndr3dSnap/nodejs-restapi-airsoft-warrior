@@ -79,11 +79,11 @@ const setCookie = async (req, res) => {
       "url_img_user":googleUser.picture,
       "token":token
     }, {
-      domain:[`${process.env.UI_ROOT_URI}`,`[${process.env.SERVER_ROOT_URI}`],
+      domain:`${process.env.UI_ROOT_URI}`,
       maxAge: 900000,
       httpOnly: false,
       secure: true,
-      sameSite:"none"
+      sameSite:"None"
     });
     //console.log(process.env.UI_ROOT_URI)
     //res.redirect(`${process.env.UI_ROOT_URI}/api/auth/me`);
