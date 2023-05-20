@@ -84,7 +84,8 @@ const setCookie = async (req, res) => {
       secure: true,
     });
     //console.log(process.env.UI_ROOT_URI)
-    res.redirect(`${process.env.UI_ROOT_URI}/api/auth/me`);
+    //res.redirect(`${process.env.UI_ROOT_URI}/api/auth/me`);
+    res.redirect(`${process.env.UI_ROOT_URI}`);
     //res.json(googleUser)
 }
 

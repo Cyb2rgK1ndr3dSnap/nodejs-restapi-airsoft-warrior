@@ -14,7 +14,7 @@ app.use(cookieParser());
 app.use(express.json())
 app.use(morgan("dev"))
 app.use(cors({
-    origin:`${process.env.SERVER_ROOT_URI}`,
+    origin:`${process.env.UI_ROOT_URI}`,
     methods:"GET,POST,PUT,DELETE",
     credentials:true
 }))
