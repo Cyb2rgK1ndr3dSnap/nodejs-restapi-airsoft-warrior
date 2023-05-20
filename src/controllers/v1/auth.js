@@ -106,7 +106,8 @@ const getCookie = (req, res) => {
 
 const deleteCookie = (req,res) =>{
     try{
-        res.clearCookie(process.env.COOKIE_NAME, {path:`/`});
+        res.cookie(process.env.COOKIE_NAME,"",{maxAge: 0})
+        //res.clearCookie(`${process.env.COOKIE_NAME}`, {path:`/`});
         res.redirect(`${process.env.UI_ROOT_URI}`);
     }catch (err){
         console.log(err)
