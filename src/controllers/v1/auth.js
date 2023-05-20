@@ -80,8 +80,9 @@ const setCookie = async (req, res) => {
       "token":token
     }, {
       maxAge: 900000,
-      httpOnly: true,
+      httpOnly: false,
       secure: true,
+      sameSite:"none"
     });
     //console.log(process.env.UI_ROOT_URI)
     //res.redirect(`${process.env.UI_ROOT_URI}/api/auth/me`);
