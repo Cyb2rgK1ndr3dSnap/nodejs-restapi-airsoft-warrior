@@ -6,6 +6,7 @@ use ecommerce;
 
 CREATE TABLE users(
     id BINARY(16) DEFAULT (UUID_TO_BIN(UUID(), 1)),
+    id_google varchar(100) NULL,
     name varchar(30) NOT NULL,
     lastname varchar(30) NOT NULL,
     email varchar(50) NOT NULL,

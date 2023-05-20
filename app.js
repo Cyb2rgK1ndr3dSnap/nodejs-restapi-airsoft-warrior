@@ -9,13 +9,15 @@ const cookieParser = require('cookie-parser');
 const PORT = process.env.PORT;
 
 const app = express();
-
 //app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.json())
 app.use(morgan("dev"))
-app.use(cors())
-
+app.use(cors({
+    origin:`${process.env.SERVER_ROOT_URI}`,
+    methods:"GET,POST,PUT,DELETE",
+    credentials:true
+}))
 app.use(`/api`,require("./src/routes/v1"))
 
 app.use((req,res,next)=>{
