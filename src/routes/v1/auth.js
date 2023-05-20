@@ -7,12 +7,12 @@ const axios = require("axios")
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv/config");
 
-const redirectURI = "google";
+//const redirectURI = "google";
 
 function getGoogleAuthURL() {
   const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
   const options = {
-    redirect_uri: `${process.env.SERVER_ROOT_URI}/api/auth/${redirectURI}`,
+    redirect_uri: `${process.env.SERVER_ROOT_URI}/api/auth/google`,
     client_id: process.env.GOOGLE_CLIENT_ID,
     access_type: "offline",
     response_type: "code",
@@ -57,14 +57,14 @@ router
         return res.send(getGoogleAuthURL());
     })
 
-    .get(`/${redirectURI}`, async (req, res) => {
+    .get(`/google`, async (req, res) => {
         const code = req.query.code;
         console.log(code)
         const { id_token, access_token } = await getTokens({
           code,
           clientId: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          redirectUri: `${process.env.SERVER_ROOT_URI}/api/auth/${redirectURI}`,
+          redirectUri: `${process.env.SERVER_ROOT_URI}/api/auth/google`,
         });
         // Fetch the user's profile with the access token and bearer
         const googleUser = await axios
