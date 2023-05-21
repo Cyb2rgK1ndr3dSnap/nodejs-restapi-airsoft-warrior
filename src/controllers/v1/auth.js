@@ -81,7 +81,7 @@ const setCookie = async (req, res) => {
       "token":token
     }, {
       domain:`${process.env.COOKIE_SET_DOMAIN}`,
-      maxAge: 900000,
+      maxAge: 1800000,
       httpOnly: false,
       secure: true,
       sameSite:"None"
@@ -107,7 +107,15 @@ const getCookie = (req, res) => {
 
 const deleteCookie = (req,res) =>{
     try{
-        res.cookie(`${process.env.COOKIE_NAME}`,"",{maxAge:0})
+        res.cookie(`${process.env.COOKIE_NAME}`,
+        "",
+        {
+            domain:`${process.env.COOKIE_SET_DOMAIN}`,
+            maxAge: 0,
+            httpOnly: false,
+            secure: true,
+            sameSite:"None"
+        })
         /*res.clearCookie(`${process.env.COOKIE_NAME}`, {
             domain:`${process.env.COOKIE_SET_DOMAIN}`,
             maxAge: 900000,
