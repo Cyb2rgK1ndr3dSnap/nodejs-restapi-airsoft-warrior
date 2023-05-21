@@ -73,6 +73,7 @@ const setCookie = async (req, res) => {
       });
   
     const token = jwt.sign(googleUser, process.env.JWT_SECRET);
+
     res.cookie(process.env.COOKIE_NAME, 
     {
       "username":googleUser.name,
@@ -106,13 +107,14 @@ const getCookie = (req, res) => {
 
 const deleteCookie = (req,res) =>{
     try{
-        res.clearCookie(`${process.env.COOKIE_NAME}`, {
+        res.cookie(`${process.env.COOKIE_NAME}`,"",{maxAge:0})
+        /*res.clearCookie(`${process.env.COOKIE_NAME}`, {
             domain:`${process.env.COOKIE_SET_DOMAIN}`,
             maxAge: 900000,
             httpOnly: false,
             secure: true,
             sameSite:"None"
-        });
+        });*/
         res.redirect(`${process.env.UI_ROOT_URI}`);
     }catch (err){
         console.log(err)
