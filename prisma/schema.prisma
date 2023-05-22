@@ -4,142 +4,21 @@ generator client {
 
 datasource db {
   provider     = "mysql"
-  url          = env("DATABASE_URL3")
+  url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
 
-model categories {
-  id       Int        @id @default(autoincrement())
-  name     String?    @unique(map: "name") @db.VarChar(50)
-  products products[]
-}
-
-model instructors {
-  id                   Bytes                  @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
-  id_user              Bytes                  @db.Binary(16)
-  specialist           Json?
-  users                users                  @relation(fields: [id_user], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_instructor_1")
-  instructors_opinions instructors_opinions[]
-
-  @@index([id_user], map: "fk_instructor_1")
-}
-
-model orders {
-  id              Bytes             @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
-  id_user         Bytes             @db.Binary(16)
-  total           Decimal           @default(0.00) @db.Decimal(5, 2)
-  paid            Boolean           @default(false)
-  closed          Boolean           @default(false)
-  created_at      DateTime          @default(now()) @db.Timestamp(0)
-  updated_at      DateTime          @default(now()) @db.Timestamp(0)
-  users           users             @relation(fields: [id_user], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_orders_1")
-  orders_products orders_products[]
-
-  @@index([id_user], map: "fk_orders_1")
-}
-
-model orders_products {
-  id_orders   Bytes    @db.Binary(16)
-  id_products Bytes    @db.Binary(16)
-  quantity    Int
-  orders      orders   @relation(fields: [id_orders], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_orders_products_1")
-  products    products @relation(fields: [id_products], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_orders_products_2")
-
-  @@id([id_orders, id_products])
-  @@index([id_products], map: "fk_orders_products_2")
-}
-
-model products {
-  id              Bytes             @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
-  id_category     Int
-  image_url       Json
-  name            String            @db.VarChar(255)
-  description     String            @db.VarChar(255)
-  price           Decimal           @db.Decimal(5, 2)
-  stock           Int               @default(0)
-  active          Boolean
-  created_at      DateTime          @default(now()) @db.Timestamp(0)
-  updated_at      DateTime          @default(now()) @db.Timestamp(0)
-  orders_products orders_products[]
-  categories      categories        @relation(fields: [id_category], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_products_1")
-
-  @@index([id_category], map: "fk_products_1")
-}
-
 model users {
-  id                   Bytes                  @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
-  name                 String                 @db.VarChar(30)
-  lastname             String                 @db.VarChar(30)
-  email                String                 @db.VarChar(50)
-  password             String                 @db.VarChar(50)
-  events_opinions      events_opinions[]
-  instructors          instructors[]
-  instructors_opinions instructors_opinions[]
-  orders               orders[]
-  users_events         users_events[]
-}
-
-model events {
-  id              Bytes             @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
-  id_place        Int
-  description     String            @db.VarChar(255)
-  price           Decimal           @db.Decimal(5, 2)
-  fecha_de_evento DateTime          @db.Date
-  events_opinions events_opinions[]
-  users_events    users_events[]
-}
-
-model events_opinions {
-  id           Int    @id @default(autoincrement())
-  id_event     Bytes  @db.Binary(16)
-  id_user      Bytes  @db.Binary(16)
-  opinion      String @db.VarChar(255)
-  calification Int
-  events       events @relation(fields: [id_event], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_events_opinions_1")
-  users        users  @relation(fields: [id_user], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_events_opinions_2")
-
-  @@index([id_event], map: "fk_events_opinions_1")
-  @@index([id_user], map: "fk_events_opinions_2")
-}
-
-model instructors_opinions {
-  id           Int         @id @default(autoincrement())
-  id_instrutor Bytes       @db.Binary(16)
-  id_user      Bytes       @db.Binary(16)
-  opinion      String      @db.VarChar(150)
-  calification Int
-  instructors  instructors @relation(fields: [id_instrutor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_instructors_opinions_1")
-  users        users       @relation(fields: [id_user], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_instructors_opinions_2")
-
-  @@index([id_instrutor], map: "fk_instructors_opinions_1")
-  @@index([id_user], map: "fk_instructors_opinions_2")
-}
-
-model places {
-  id          Int             @id @default(autoincrement())
-  name        String          @db.VarChar(100)
-  description String          @db.VarChar(250)
-  ubication   String          @db.VarChar(250)
-  latitude    Float           @db.Float
-  longitude   Float           @db.Float
-  ambiente    places_ambiente
-}
-
-model users_events {
-  id       Int    @id @default(autoincrement())
-  id_event Bytes  @db.Binary(16)
-  id_users Bytes  @db.Binary(16)
-  events   events @relation(fields: [id_event], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_events_1")
-  users    users  @relation(fields: [id_users], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_events_2")
-
-  @@index([id_event], map: "fk_users_events_1")
-  @@index([id_users], map: "fk_users_events_2")
-}
-
-enum places_ambiente {
-  Boscoso
-  Urbano
-  llano
-  Cerrado
-  Experimental
+  id          Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  id_google   String?  @db.VarChar(100)
+  id_teams    Bytes?   @db.Binary(16)
+  image_url   Json
+  name        String   @db.VarChar(30)
+  lastname    String?  @db.VarChar(30)
+  age         Int?
+  phonenumber String?  @db.VarChar(16)
+  email       String   @unique(map: "email") @db.VarChar(50)
+  password    String?  @db.VarChar(150)
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+  updated_at  DateTime @default(now()) @db.Timestamp(0)
 }

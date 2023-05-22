@@ -7,10 +7,16 @@ use ecommerce;
 CREATE TABLE users(
     id BINARY(16) DEFAULT (UUID_TO_BIN(UUID(), 1)),
     id_google varchar(100) NULL,
+    id_teams BINARY(16) NULL,
+    image_url JSON NOT NULL,
     name varchar(30) NOT NULL,
-    lastname varchar(30) NOT NULL,
-    email varchar(50) NOT NULL,
-    password varchar(50) NOT NULL,
+    lastname varchar(30) NULL,
+    age int NULL,
+    phonenumber varchar(16) NULL,
+    email varchar(50) NOT NULL unique,
+    password varchar(150) NULL,
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 );
 
@@ -31,6 +37,7 @@ CREATE TABLE teams(
 CREATE TABLE instructors(
     id BINARY(16) DEFAULT (UUID_TO_BIN(UUID(), 1)),
     id_user BINARY(16) NOT NULL,
+    video_url varchar(250) NULL,
     specialist json,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_instructor_1`

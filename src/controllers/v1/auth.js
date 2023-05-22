@@ -1,7 +1,23 @@
 const querystring = require("querystring");
 const axios = require("axios")
 const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv/config");
+const { prisma } = require('../../config/connection.js');
+const uuidParse = require('uuid-parse');
+require("dotenv/config");
+const {
+    uploads,
+    deletes
+} = require("../../utils/handleCloudinary.js");
+
+const {
+    encrypt,
+    compare,
+} = require("../../utils/handleEncrypt.js")
+
+const{
+    cookieCreate
+} = require("../../utils/handleCookieUser.js");
+const { check } = require("express-validator");
 
 const getGoogleAuthURL = (req, res) =>{
     const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -21,7 +37,7 @@ const getGoogleAuthURL = (req, res) =>{
     res.status(200).json({"url":`${rootUrl}?${querystring.stringify(options)}`})
 }
 
-const getTokens = ({ code, clientId, clientSecret, redirectUri }) => {
+const getTokens = async ({ code, clientId, clientSecret, redirectUri }) => {
     /*
      * Uses the code to get tokens
      * that can be used to fetch the user's profile
@@ -34,7 +50,7 @@ const getTokens = ({ code, clientId, clientSecret, redirectUri }) => {
       redirect_uri: redirectUri,
       grant_type: "authorization_code"
     }
-    return axios
+    return await axios
       .post(url, querystring.stringify(values), {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -49,7 +65,7 @@ const getTokens = ({ code, clientId, clientSecret, redirectUri }) => {
 
 const setCookie = async (req, res) => {
     const code = req.query.code;
-    console.log(code)
+    let result = "";
     const { id_token, access_token } = await getTokens({
       code,
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -71,34 +87,71 @@ const setCookie = async (req, res) => {
         console.error(`Failed to fetch user`);
         throw new Error(error.message);
       });
-  
-    const token = jwt.sign(googleUser, process.env.JWT_SECRET);
 
-    res.cookie(process.env.COOKIE_NAME, 
-    {
-      "username":googleUser.name,
-      "url_img_user":googleUser.picture,
-      "token":token
-    }, {
-      domain:`${process.env.COOKIE_SET_DOMAIN}`,
-      maxAge: 1800000,
-      httpOnly: false,
-      secure: true,
-      sameSite:"None"
-    });
-    //console.log(process.env.UI_ROOT_URI)
-    //res.redirect(`${process.env.UI_ROOT_URI}/api/auth/me`);
-    res.redirect(`${process.env.UI_ROOT_URI}`);
-    //res.json(googleUser)
+      try {
+        const user = await prisma.users.findUnique({
+            where:{
+                email:googleUser.email
+            },
+            select:{
+                id:true,
+                id_google:true,
+                image_url:true,
+                name:true,
+                email:true
+            }
+        })
+        
+        if(user && !user.id_google){
+            return res.status(500).json({isSuccess:false,error:"Email no disponible"})
+        }
+
+        if(!user){
+            image_url = {
+                id:"googlePicture",
+                url:googleUser.picture
+            }
+            result = await prisma.users.create({
+                data:{
+                    id_google:googleUser.id,
+                    image_url,
+                    name:googleUser.name,
+                    email:googleUser.email,
+                },
+            })
+            const uuid = uuidParse.unparse(result.id)
+            result.id = uuid
+
+            const token = await jwt.sign(result, process.env.JWT_SECRET);
+            result["token"]=token
+            cookieCreate(req,res,process.env.COOKIE_NAME,result,1800000)
+            return res.redirect(`${process.env.UI_ROOT_URI}/api/auth/me`);
+        }
+        const uuid = uuidParse.unparse(user.id)
+        user.id = uuid
+
+        const token = await jwt.sign(user, process.env.JWT_SECRET);
+        user["token"]=token
+        cookieCreate(req,res,process.env.COOKIE_NAME,user,1800000)
+
+        return res.redirect(`${process.env.UI_ROOT_URI}/api/auth/me`);
+      } catch (error) {
+        console.log(error)
+        res.status(500).json(error)
+      }
 }
 
 const getCookie = (req, res) => {
-    //console.log("get me");
-    console.log(req.cookies[process.env.COOKIE_NAME])
     try {
       const decoded = jwt.verify(req.cookies[process.env.COOKIE_NAME].token, process.env.JWT_SECRET);
-      //return res.status(200).send({"username":req.cookies[process.env.COOKIE_NAME].username,"url_img_user":googleUser.picture,"token":decoded});
-      return res.status(200).send({"username":req.cookies[process.env.COOKIE_NAME].username,"url_img_user":req.cookies[process.env.COOKIE_NAME].picture,"token":decoded});
+      return res.status(200).send
+        ({
+            "username":req.cookies[process.env.COOKIE_NAME].username,
+            "url_img_user":req.cookies[process.env.COOKIE_NAME].url_img_user,
+            "age":req.cookies[process.env.COOKIE_NAME].age,
+            "phonenumber":req.cookies[process.env.COOKIE_NAME].phonenumber,
+            "token":decoded
+        });
     } catch (err) {
       console.log(err);
       res.status(500).json(err);
@@ -107,22 +160,7 @@ const getCookie = (req, res) => {
 
 const deleteCookie = (req,res) =>{
     try{
-        res.cookie(`${process.env.COOKIE_NAME}`,
-        "",
-        {
-            domain:`${process.env.COOKIE_SET_DOMAIN}`,
-            maxAge: 0,
-            httpOnly: false,
-            secure: true,
-            sameSite:"None"
-        })
-        /*res.clearCookie(`${process.env.COOKIE_NAME}`, {
-            domain:`${process.env.COOKIE_SET_DOMAIN}`,
-            maxAge: 900000,
-            httpOnly: false,
-            secure: true,
-            sameSite:"None"
-        });*/
+        cookieCreate(req,res,process.env.COOKIE_NAME,"",0)
         res.redirect(`${process.env.UI_ROOT_URI}`);
     }catch (err){
         console.log(err)
@@ -130,9 +168,110 @@ const deleteCookie = (req,res) =>{
     }
 }
 
+const createUser = async (req,res) =>{
+    const file = req.file;
+    const {email,age,password,cpassword} = req.body
+    let image_url
+
+    if(!(password===cpassword)) 
+        return res.status(500).json({isSuccess:false,error:"Las constraseña no coinciden"})
+
+    const name = email.split("@").shift();
+    
+    try {
+
+        const user = await prisma.users.findFirst({
+            where:{
+                email:email
+            }
+        })
+
+        if(user)
+            return res.status(500).json({isSuccess:false,error:"Email no disponible"})
+
+        if(file){
+            const { path } = file;
+            image_url = await uploads(path,"users");
+            fs.unlinkSync(path);
+        }else{
+            image_url = {
+                id:"defaultuser_wn4ieo",
+                url:"https://res.cloudinary.com/dgfhyw8un/image/upload/v1684645346/users/defaultuser_wn4ieo.png"
+            }
+        }
+
+        const passencrypt = await encrypt(password)
+
+        if(image_url.url){
+            const result = await prisma.users.create({
+                data:{
+                    image_url,
+                    name,
+                    age:parseInt(age),
+                    email,
+                    password:passencrypt
+                }
+            })
+
+            if(!result) 
+                res.status(500).json({isSuccess:false,error:"Error al crear cuenta"})
+
+        }else{
+            return res.status(500).json({
+                isSuccess: false,
+                error:"Error al cargar imagen"
+            });
+        }
+
+        return res.status(200).json({isSuccess: true,message:"Cuenta creada exitosamente"})
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json(error)
+    }
+}
+
+const loginUser = async (req,res)=>{
+    const {email,password} = req.body
+    try {
+        const user = await prisma.users.findUnique({
+            where:{
+                email:email
+            },select:{
+                id:true,
+                image_url:true,
+                name:true,
+                phonenumber:true,
+                email:true,
+                password:true
+            }
+        })
+        
+        const checkPassword = await compare(password,user.password)
+
+        if(checkPassword===true){
+            delete user.password
+            const uuid = uuidParse.unparse(user.id)
+            user.id = uuid
+            const token = await jwt.sign(user, process.env.JWT_SECRET);
+            user["token"]=token
+            console.log(user)
+            cookieCreate(req,res,process.env.COOKIE_NAME,user,1800000)
+            return res.redirect(`${process.env.UI_ROOT_URI}/api/auth/me`);
+            //return res.status(200).json({isSuccess:true,message:"Logueado exitosamente"})
+        }
+        return res.status(500).json({isSuccess:false,message:"Email o contraseña incorrectos"})
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({isSuccess:false,message:"Error, comuniquese con soporte técnico"})
+    }
+}
+
 module.exports = {
     getGoogleAuthURL,
     setCookie,
     getCookie,
-    deleteCookie
+    deleteCookie,
+    createUser,
+    loginUser
 }

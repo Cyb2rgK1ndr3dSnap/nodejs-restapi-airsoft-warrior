@@ -7,7 +7,9 @@ const {
   getGoogleAuthURL,
   setCookie,
   getCookie,
-  deleteCookie
+  deleteCookie,
+  createUser,
+  loginUser
 } = require("../../controllers/v1/auth")
 
 
@@ -20,7 +22,9 @@ router
 
     .get(`/logout`,deleteCookie)
 
-    .post("/register",)
+    .post("/register",createUser)
+
+    .post(`/login`,loginUser)
 
     //.post("/login",authGoogle,googleSignup)
 

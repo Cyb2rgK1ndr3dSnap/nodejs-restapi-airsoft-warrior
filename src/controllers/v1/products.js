@@ -49,13 +49,13 @@ const getProduct = async (req ,res)=>{
 }
 
 const createProduct = async (req, res)=>{
-    const uploader = async (path) => await uploads(path, 'uploads');
+    const uploader = async (path) => await uploads(path, 'products');
     try{
         const file = req.file;
         const{id_category,name,description,price,stock,active}= req.body;
             const { path } = file;
             const image_url = await uploader(path)
-            console.log(image_url)
+            //console.log(image_url)
             fs.unlinkSync(path)
             if(image_url.url){
                 const result = await prisma.products.create({
