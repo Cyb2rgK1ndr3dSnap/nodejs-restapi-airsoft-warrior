@@ -4,14 +4,13 @@ generator client {
 
 datasource db {
   provider     = "mysql"
-  url          = env("DATABASE_URL")
+  url          = env("DATABASE_URL3")
   relationMode = "prisma"
 }
 
 model users {
   id          Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
   id_google   String?  @db.VarChar(100)
-  id_teams    Bytes?   @db.Binary(16)
   image_url   Json
   name        String   @db.VarChar(30)
   lastname    String?  @db.VarChar(30)
@@ -21,4 +20,77 @@ model users {
   password    String?  @db.VarChar(150)
   created_at  DateTime @default(now()) @db.Timestamp(0)
   updated_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model teams {
+  id          Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  image_url   Json
+  name        String   @unique(map: "name") @db.VarChar(255)
+  description String?  @db.VarChar(255)
+  created_by  Bytes    @db.Binary(16)
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+  updated_at  DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([created_by], map: "fk_teams_1")
+}
+
+model teams_users {
+  id       Int      @id @default(autoincrement())
+  id_teams Bytes    @db.Binary(16)
+  id_users Bytes    @db.Binary(16)
+  accepted Boolean?
+
+  @@index([id_teams], map: "fk_teams_users_1")
+  @@index([id_users], map: "fk_teams_users_2")
+}
+
+model instructors {
+  id          Bytes   @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  id_user     Bytes   @db.Binary(16)
+  video_url   String? @db.VarChar(250)
+  description String  @db.VarChar(250)
+  specialist  Json
+
+  @@index([id_user], map: "fk_instructor_1")
+}
+
+model categories {
+  id   Int     @id @default(autoincrement())
+  name String? @unique(map: "name") @db.VarChar(50)
+}
+
+model orders {
+  id         Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  id_user    Bytes    @db.Binary(16)
+  total      Decimal  @default(0.00) @db.Decimal(5, 2)
+  paid       Boolean  @default(false)
+  closed     Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  updated_at DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([id_user], map: "fk_orders_1")
+}
+
+model orders_products {
+  id_orders   Bytes @db.Binary(16)
+  id_products Bytes @db.Binary(16)
+  quantity    Int
+
+  @@id([id_orders, id_products])
+  @@index([id_products], map: "fk_orders_products_2")
+}
+
+model products {
+  id          Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  id_category Int
+  image_url   Json
+  name        String   @db.VarChar(255)
+  description String   @db.VarChar(255)
+  price       Decimal  @db.Decimal(5, 2)
+  stock       Int      @default(0)
+  active      Boolean
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+  updated_at  DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([id_category], map: "fk_products_1")
 }

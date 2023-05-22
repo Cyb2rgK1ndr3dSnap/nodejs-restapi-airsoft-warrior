@@ -21,11 +21,10 @@ router
     
     .post(`/`,multerUpload.single('image'),createProduct)
 
-    .put(`/:id`,validateId,updateProduct)
+    .put(`/:id`,multerUpload.single('image'),validateId,updateProduct)
 
     .delete(`/:id`,validateId,deleteProduct)
 
-    //.get(`/`)
 module.exports = router
 
 

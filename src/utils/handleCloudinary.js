@@ -39,9 +39,9 @@ const uploads = (file, folder) => {
  * @param {*} file 
  * @returns 
  */
-const deletes = (file) =>{
+const deletes = (fileId) =>{
     return new Promise(resolve => {
-        cloudinary.uploader.destroy(file, (result) => {
+        cloudinary.uploader.destroy(fileId, (result) => {
             resolve({
                 response: result.result,
             })

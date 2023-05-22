@@ -14,11 +14,12 @@ const getProducts = async (req ,res)=>{
         skip: (16*(parseInt(pagination)-1)),
         take: 16,
         where:{
-            id_category:parseInt(tags)||undefined
+            id_category:parseInt(tags)|| undefined
         },
-        orderBy:{
-            name: order,
-        }
+        orderBy:[{
+            name: order || undefined,
+            prices: prices || undefined
+        }]
     })
     result.forEach( (value, key, map) => {
         value.id=uuidParse.unparse(value.id);
@@ -55,7 +56,6 @@ const createProduct = async (req, res)=>{
         const{id_category,name,description,price,stock,active}= req.body;
             const { path } = file;
             const image_url = await uploader(path)
-            //console.log(image_url)
             fs.unlinkSync(path)
             if(image_url.url){
                 const result = await prisma.products.create({
@@ -85,28 +85,56 @@ const createProduct = async (req, res)=>{
 }
 
 const updateProduct = async (req,res)=>{
+    const file = req.file;
     const{id}= req.params;
-    const{body} = req.body;
+    const{id_category,name,description,price,stock,active} = req.body;
     const bytes = uuidParse.parse(id);
-    const result = await prisma.products.update({
-        where : {
-            id:Buffer.from(bytes)
-        },
-        data:{
-            id_category:body.id_category || undefined,
-            image_url: url || undefined,
-            name:body.name || undefined,
-            description:body.description || undefined,
-            price:body.price || undefined,
-            stock:body.stock || undefined,
-            active:body.active || undefined
+    let image_url= {};
+    let response = "";
+    try{
+        if(file){
+            const { path } = file;
+            image_url = await uploads(path, 'products');
+            fs.unlinkSync(path)
+
+            const product = await prisma.products.findUnique({
+                where:{
+                    id:Buffer.from(bytes)
+                },
+                select:{
+                    image_url:true
+                }
+            })
+            
+            response = await deletes(product.image_url.id)
+            console.log(response)
         }
-    })
-    if(result){
-        res.status(200).json({message:"Información actualizada correctamente"})
-    }else{
-        res.status(500).json({message:"Error al actualizar información"})
-    }    
+
+        if(file===undefined || response.response == "ok" || response.response === "not found"){
+            const result = await prisma.products.update({
+                where : {
+                    id:Buffer.from(bytes)
+                },
+                data:{
+                    id_category:id_category || undefined,
+                    image_url: image_url || undefined,
+                    name:name || undefined,
+                    description:description || undefined,
+                    price:price || undefined,
+                    stock:stock || undefined,
+                    active:active || undefined
+                }
+            })
+            console.log(result)
+            if(result){
+                return res.status(200).json({message:"Información actualizada correctamente"})
+            }
+            return res.status(500).json({message:"Error al actualizar información"})
+        }
+    }catch(error){
+        console.log(error)
+        res.status(500).json({isSuccess:false,message:"Error al actualizar producto, comuniquese con soporte técnico"})
+    }
 }
 
 const deleteProduct = async (req,res)=>{
@@ -121,7 +149,7 @@ const deleteProduct = async (req,res)=>{
         },
     })
     const response = await deletes(result.image_url.id)
-    if(response.response === "ok"){
+    if(response.response === "ok" || response.response === "not found"){
         const result2 = await prisma.products.delete({
             where:  {
                 id:Buffer.from(bytes),

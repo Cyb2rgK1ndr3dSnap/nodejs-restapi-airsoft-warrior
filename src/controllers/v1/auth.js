@@ -17,7 +17,6 @@ const {
 const{
     cookieCreate
 } = require("../../utils/handleCookieUser.js");
-const { check } = require("express-validator");
 
 const getGoogleAuthURL = (req, res) =>{
     const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -125,7 +124,7 @@ const setCookie = async (req, res) => {
             const token = await jwt.sign(result, process.env.JWT_SECRET);
             result["token"]=token
             cookieCreate(req,res,process.env.COOKIE_NAME,result,1800000)
-            return res.redirect(`${process.env.UI_ROOT_URI}/api/auth/me`);
+            return res.redirect(`${process.env.UI_ROOT_URI}`);
         }
         const uuid = uuidParse.unparse(user.id)
         user.id = uuid
@@ -134,38 +133,11 @@ const setCookie = async (req, res) => {
         user["token"]=token
         cookieCreate(req,res,process.env.COOKIE_NAME,user,1800000)
 
-        return res.redirect(`${process.env.UI_ROOT_URI}/api/auth/me`);
+        return res.redirect(`${process.env.UI_ROOT_URI}`);
       } catch (error) {
         console.log(error)
         res.status(500).json(error)
       }
-}
-
-const getCookie = (req, res) => {
-    try {
-      const decoded = jwt.verify(req.cookies[process.env.COOKIE_NAME].token, process.env.JWT_SECRET);
-      return res.status(200).send
-        ({
-            "username":req.cookies[process.env.COOKIE_NAME].username,
-            "url_img_user":req.cookies[process.env.COOKIE_NAME].url_img_user,
-            "age":req.cookies[process.env.COOKIE_NAME].age,
-            "phonenumber":req.cookies[process.env.COOKIE_NAME].phonenumber,
-            "token":decoded
-        });
-    } catch (err) {
-      console.log(err);
-      res.status(500).json(err);
-    }
-}
-
-const deleteCookie = (req,res) =>{
-    try{
-        cookieCreate(req,res,process.env.COOKIE_NAME,"",0)
-        res.redirect(`${process.env.UI_ROOT_URI}`);
-    }catch (err){
-        console.log(err)
-        res.status(500).json(err)
-    }
 }
 
 const createUser = async (req,res) =>{
@@ -264,6 +236,33 @@ const loginUser = async (req,res)=>{
     } catch (error) {
         console.log(error)
         res.status(500).json({isSuccess:false,message:"Error, comuniquese con soporte técnico"})
+    }
+}
+
+const getCookie = (req, res) => {
+    try {
+      const decoded = jwt.verify(req.cookies[process.env.COOKIE_NAME].token, process.env.JWT_SECRET);
+      return res.status(200).send
+        ({
+            "username":req.cookies[process.env.COOKIE_NAME].username,
+            "url_img_user":req.cookies[process.env.COOKIE_NAME].url_img_user,
+            "age":req.cookies[process.env.COOKIE_NAME].age,
+            "phonenumber":req.cookies[process.env.COOKIE_NAME].phonenumber,
+            "token":decoded
+        });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json(err);
+    }
+}
+
+const deleteCookie = (req,res) =>{
+    try{
+        cookieCreate(req,res,process.env.COOKIE_NAME,"",0)
+        res.redirect(`${process.env.UI_ROOT_URI}`);
+    }catch (err){
+        console.log(err)
+        res.status(500).json(err)
     }
 }
 
