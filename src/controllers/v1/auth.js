@@ -18,6 +18,11 @@ const{
     cookieCreate
 } = require("../../utils/handleCookieUser.js");
 
+const{
+    tokenSign,
+    verifyToken
+} = require("../../utils/handleGenerateToken.js")
+
 const getGoogleAuthURL = (req, res) =>{
     const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
     const options = {
@@ -88,7 +93,7 @@ const setCookie = async (req, res) => {
       });
 
       try {
-        const user = await prisma.users.findUnique({
+        let user = await prisma.users.findUnique({
             where:{
                 email:googleUser.email
             },
@@ -110,7 +115,7 @@ const setCookie = async (req, res) => {
                 id:"googlePicture",
                 url:googleUser.picture
             }
-            result = await prisma.users.create({
+            user = await prisma.users.create({
                 data:{
                     id_google:googleUser.id,
                     image_url,
@@ -118,20 +123,12 @@ const setCookie = async (req, res) => {
                     email:googleUser.email,
                 },
             })
-            const uuid = uuidParse.unparse(result.id)
-            result.id = uuid
-
-            const token = await jwt.sign(result, process.env.JWT_SECRET);
-            result["token"]=token
-            cookieCreate(req,res,process.env.COOKIE_NAME,result,1800000)
-            return res.redirect(`${process.env.UI_ROOT_URI}`);
         }
         const uuid = uuidParse.unparse(user.id)
         user.id = uuid
 
-        const token = await jwt.sign(user, process.env.JWT_SECRET);
-        user["token"]=token
-        cookieCreate(req,res,process.env.COOKIE_NAME,user,1800000)
+        user["token"]= await tokenSign(user)
+        cookieCreate(req,res,process.env.COOKIE_NAME,user,3600000)
 
         return res.redirect(`${process.env.UI_ROOT_URI}`);
       } catch (error) {
@@ -225,12 +222,11 @@ const loginUser = async (req,res)=>{
             delete user.password
             const uuid = uuidParse.unparse(user.id)
             user.id = uuid
-            const token = await jwt.sign(user, process.env.JWT_SECRET);
-            user["token"]=token
-            console.log(user)
-            cookieCreate(req,res,process.env.COOKIE_NAME,user,1800000)
-            return res.redirect(`${process.env.UI_ROOT_URI}/api/auth/me`);
-            //return res.status(200).json({isSuccess:true,message:"Logueado exitosamente"})
+            //const token = await jwt.sign(user, process.env.JWT_SECRET);
+            user["token"]= await tokenSign(user)
+
+            cookieCreate(req,res,process.env.COOKIE_NAME,user,3600000)
+            return res.redirect(`${process.env.UI_ROOT_URI}`);
         }
         return res.status(500).json({isSuccess:false,message:"Email o contraseña incorrectos"})
     } catch (error) {
@@ -239,10 +235,10 @@ const loginUser = async (req,res)=>{
     }
 }
 
-const getCookie = (req, res) => {
+const getCookie = async (req, res) => {
     try {
-      const decoded = jwt.verify(req.cookies[process.env.COOKIE_NAME].token, process.env.JWT_SECRET);
-      return res.status(200).send
+      const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].token);
+      return res.status(200).json
         ({
             "username":req.cookies[process.env.COOKIE_NAME].username,
             "url_img_user":req.cookies[process.env.COOKIE_NAME].url_img_user,

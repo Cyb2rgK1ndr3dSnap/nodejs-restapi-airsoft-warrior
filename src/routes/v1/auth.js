@@ -1,4 +1,5 @@
 const { Router } = require ("express");
+const multerUpload = require("../../utils/handleStorage")
 const router = Router()
 //const {authGoogle} = require("../../middleware/authGoogle")
 //const {googleSignup} = require("../../controllers/v1/testingAuth")
@@ -12,19 +13,23 @@ const {
   loginUser
 } = require("../../controllers/v1/auth")
 
+const {
+  validateRegister,
+  validateLogin
+} = require("../../validators/auth")
 
 router
     .get("/google/url", getGoogleAuthURL)
 
-    .get(`/google`, setCookie)
+    .get(`/google`,setCookie)
 
     .get("/me", getCookie)
 
     .get(`/logout`,deleteCookie)
 
-    .post("/register",createUser)
+    .post("/register",multerUpload.single('image'),validateRegister,createUser)
 
-    .post(`/login`,loginUser)
+    .post(`/login`,validateLogin,loginUser)
 
     //.post("/login",authGoogle,googleSignup)
 

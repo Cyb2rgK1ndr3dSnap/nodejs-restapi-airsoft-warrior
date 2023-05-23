@@ -8,7 +8,7 @@ const fs = require ('fs');
 const uuidParse = require('uuid-parse');
 
 const getProducts = async (req ,res)=>{
-    const {pagination,tags,order,prices} = req.query;
+    const {pagination,tags,order,price} = req.query;
     //console.log("MULTIPLACIÓN"+((16*(parseInt(pagination)-1))+1))
     const result = await prisma.products.findMany({
         skip: (16*(parseInt(pagination)-1)),
@@ -18,7 +18,7 @@ const getProducts = async (req ,res)=>{
         },
         orderBy:[{
             name: order || undefined,
-            prices: prices || undefined
+            prices: price || undefined
         }]
     })
     result.forEach( (value, key, map) => {

@@ -4,22 +4,23 @@ generator client {
 
 datasource db {
   provider     = "mysql"
-  url          = env("DATABASE_URL3")
+  url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
 
 model users {
-  id          Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
-  id_google   String?  @db.VarChar(100)
+  id          Bytes     @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  id_google   String?   @db.VarChar(100)
   image_url   Json
-  name        String   @db.VarChar(30)
-  lastname    String?  @db.VarChar(30)
+  rol         users_rol @default(user)
+  name        String    @db.VarChar(30)
+  lastname    String?   @db.VarChar(30)
   age         Int?
-  phonenumber String?  @db.VarChar(16)
-  email       String   @unique(map: "email") @db.VarChar(50)
-  password    String?  @db.VarChar(150)
-  created_at  DateTime @default(now()) @db.Timestamp(0)
-  updated_at  DateTime @default(now()) @db.Timestamp(0)
+  phonenumber String?   @db.VarChar(16)
+  email       String    @unique(map: "email") @db.VarChar(50)
+  password    String?   @db.VarChar(150)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime  @default(now()) @db.Timestamp(0)
 }
 
 model teams {
@@ -93,4 +94,67 @@ model products {
   updated_at  DateTime @default(now()) @db.Timestamp(0)
 
   @@index([id_category], map: "fk_products_1")
+}
+
+model events {
+  id              Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  id_place        Int
+  description     String   @db.VarChar(255)
+  price           Decimal  @db.Decimal(5, 2)
+  fecha_de_evento DateTime @db.Date
+}
+
+model events_opinions {
+  id           Int    @id @default(autoincrement())
+  id_event     Bytes  @db.Binary(16)
+  id_user      Bytes  @db.Binary(16)
+  opinion      String @db.VarChar(255)
+  calification Int
+
+  @@index([id_event], map: "fk_events_opinions_1")
+  @@index([id_user], map: "fk_events_opinions_2")
+}
+
+model instructors_opinions {
+  id           Int    @id @default(autoincrement())
+  id_instrutor Bytes  @db.Binary(16)
+  id_user      Bytes  @db.Binary(16)
+  opinion      String @db.VarChar(150)
+  calification Int
+
+  @@index([id_instrutor], map: "fk_instructors_opinions_1")
+  @@index([id_user], map: "fk_instructors_opinions_2")
+}
+
+model places {
+  id          Int             @id @default(autoincrement())
+  name        String          @db.VarChar(100)
+  description String          @db.VarChar(250)
+  ubication   String          @db.VarChar(250)
+  latitude    Float           @db.Float
+  longitude   Float           @db.Float
+  ambiente    places_ambiente
+}
+
+model users_events {
+  id       Int   @id @default(autoincrement())
+  id_event Bytes @db.Binary(16)
+  id_users Bytes @db.Binary(16)
+
+  @@index([id_event], map: "fk_users_events_1")
+  @@index([id_users], map: "fk_users_events_2")
+}
+
+enum users_rol {
+  user
+  tecnico
+  administrador
+}
+
+enum places_ambiente {
+  Boscoso
+  Urbano
+  llano
+  Cerrado
+  Experimental
 }
