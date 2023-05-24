@@ -138,7 +138,7 @@ const setCookie = async (req, res) => {
 }
 
 const createUser = async (req,res) =>{
-    const file = req.file;
+    const path = req.file;
     const {email,age,password,cpassword} = req.body
     let image_url
 
@@ -158,10 +158,10 @@ const createUser = async (req,res) =>{
         if(user)
             return res.status(500).json({isSuccess:false,error:"Email no disponible"})
 
-        if(file){
-            const { path } = file;
+        if(path){
+            //const { path } = file;
             image_url = await uploads(path,"users");
-            fs.unlinkSync(path);
+            //fs.unlinkSync(path);
         }else{
             image_url = {
                 id:"defaultuser_wn4ieo",

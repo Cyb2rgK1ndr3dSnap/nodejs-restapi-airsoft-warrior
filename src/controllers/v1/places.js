@@ -38,12 +38,12 @@ const getPlace = async (req,res) => {
 }
 
 const createPlace = async (req,res) =>{
-    const file = req.file
+    const path = req.file
     const {name,description,ubication,latitude,longitude,ambiente} = req.body
     try {
-        const { path } = file;
+        //const { path } = file;
         const image_url = await uploads(path,"places");
-        fs.unlinkSync(path);
+        //fs.unlinkSync(path);
         if(image.url){
             const result = await prisma.places.create({
                 data:{
