@@ -52,9 +52,9 @@ const getProduct = async (req ,res)=>{
 const createProduct = async (req, res)=>{
     const uploader = async (path) => await uploads(path, 'products');
     try{
-        const file = req.file;
+        const path = req.file.path;
         const{id_category,name,description,price,stock,active}= req.body;
-            const { path } = file;
+            //const { path } = file;
             const image_url = await uploader(path)
             fs.unlinkSync(path)
             if(image_url.url){
