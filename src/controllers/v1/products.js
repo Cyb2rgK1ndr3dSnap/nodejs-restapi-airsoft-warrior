@@ -69,13 +69,12 @@ const createProduct = async (req, res)=>{
                         active:Boolean(active)
                     }
                 })
-                res.status(200).json(result);
-            }else{
-                res.status(500).json({
+                return res.status(200).json(result);
+            }
+                return res.status(500).json({
                     isSuccess: false,
                     error:"Error al cargar imagen"
                 });
-            }
     }catch(e){
         console.log(e)
         res.status(500).json({

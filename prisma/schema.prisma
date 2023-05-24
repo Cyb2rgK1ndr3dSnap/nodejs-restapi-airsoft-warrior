@@ -129,6 +129,7 @@ model instructors_opinions {
 model places {
   id          Int             @id @default(autoincrement())
   name        String          @db.VarChar(100)
+  image_url   Json
   description String          @db.VarChar(250)
   ubication   String          @db.VarChar(250)
   latitude    Float           @db.Float
