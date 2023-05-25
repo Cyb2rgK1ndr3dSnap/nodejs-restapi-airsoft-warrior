@@ -3,16 +3,21 @@ const morgan = require("morgan");
 const dotenv = require("dotenv/config")
 const cors = require("cors")
 const cookieParser = require('cookie-parser');
+const multer = require('multer');
+const upload = multer();
 //const { PrismaClient } = require('@prisma/client');
-//const router = require("./src/routes/v1/products")
 
 const PORT = process.env.PORT;
 
 const app = express();
-//app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json())
+app.use(upload.array())
+
+app.use(cookieParser());
+
 app.use(morgan("dev"))
+
 app.use(cors({
     origin:`*`,
     methods:"GET,POST,PUT,DELETE",

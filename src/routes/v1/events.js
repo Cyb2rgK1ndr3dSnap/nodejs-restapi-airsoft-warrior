@@ -1,4 +1,5 @@
 const { Router } = require ("express");
+const multerUpload = require("../../utils/handleStorage")
 const router = Router()
 
 const {
@@ -10,9 +11,9 @@ const {
 } = require("../../controllers/v1/events")
 
 router
-    .get(`/`,getEvent)
+    .get(`/`,getEvents)
 
-    .get(`/:id`,getEvents)
+    .get(`/:id`,getEvent)
 
     .post(`/`,createEvent)
 

@@ -6,7 +6,7 @@ const validateRegister = [
     check("age").exists().notEmpty(),
     check("password").exists().notEmpty(),
     check("cpassword").exists().notEmpty(),
-    check("image").exists().notEmpty(),
+    check("image").exists().notEmpty().optional(),
     (req, res, next) => {
         validateResult(req, res, next);
     }

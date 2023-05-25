@@ -98,10 +98,13 @@ model products {
 
 model events {
   id              Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  place           places   @relation(fields: [id_place], references: [id])
   id_place        Int
   description     String   @db.VarChar(255)
   price           Decimal  @db.Decimal(5, 2)
   fecha_de_evento DateTime @db.Date
+
+  @@index([id_place], map: "fk_events_1")
 }
 
 model events_opinions {
@@ -135,6 +138,7 @@ model places {
   latitude    Float           @db.Float
   longitude   Float           @db.Float
   ambiente    places_ambiente
+  events      events[]
 }
 
 model users_events {

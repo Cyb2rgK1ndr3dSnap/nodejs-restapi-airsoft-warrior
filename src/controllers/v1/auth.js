@@ -138,7 +138,6 @@ const loginUserGoogle = async (req, res) => {
 }
 
 const createUser = async (req,res) =>{
-    const path = req.file.path;
     const {email,age,password,cpassword} = req.body
     let image_url
 
@@ -158,8 +157,9 @@ const createUser = async (req,res) =>{
         if(user)
             return res.status(500).json({isSuccess:false,error:"Email no disponible"})
 
-        if(path){
+        if(req.file){
             //const { path } = file;
+            const path = req.file.path;
             image_url = await uploads(path,"users");
             //fs.unlinkSync(path);
         }else{

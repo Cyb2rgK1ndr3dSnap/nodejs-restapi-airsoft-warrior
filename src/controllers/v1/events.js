@@ -4,11 +4,12 @@ const uuidParse = require('uuid-parse');
 
 const getEvents = async (req,res) =>{
     try {
-        const result = prisma.events.findMany({
+        const result = await prisma.events.findMany({
             include:{
-                places:true,
+                place:true,
             }
-        })
+        });
+
         result.forEach( (value, key, map) => {
             value.id=uuidParse.unparse(value.id);
           });
@@ -24,7 +25,7 @@ const getEvents = async (req,res) =>{
 
 const getEvent = async (req,res) =>{
     try {
-        const {id} = req.query
+        const {id} = req.params
         const bytes = uuidParse.parse(id)
         const result = await prisma.events.findUnique({
             where:{
@@ -46,10 +47,10 @@ const createEvent = async (req,res) =>{
         const {id_place,description,price,fecha_de_evento} = req.body
         const result = await prisma.events.create({
             data:{
-                id_place,
+                id_place:parseInt(id_place),
                 description,
                 price,
-                fecha_de_evento
+                fecha_de_evento:new Date(fecha_de_evento)
             }
         })
         res.status(200).json(result)
@@ -57,14 +58,14 @@ const createEvent = async (req,res) =>{
         console.log(error)
         res.status(500).json({
             isSuccess:false,
-            message:"Error al crear evente, contacté con soporté"
+            message:"Error al crear evento, contacté con soporté"
         })
     }
 }
 
 const updateEvent = async (req,res) => {
     try {
-        const {id} = req.query
+        const {id} = req.params
         const {id_place,description,price,fecha_de_evento} = req.body
         const bytes = uuidParse.parse(id)
         const result = await prisma.events.update({
@@ -94,7 +95,7 @@ const updateEvent = async (req,res) => {
 
 const deleteEvent = async (req,res) => {
     try {
-        const {id} = req.body
+        const {id} = req.params
         const bytes = uuidParse.parse(id)
         const result = await prisma.events.delete({
             where:{
