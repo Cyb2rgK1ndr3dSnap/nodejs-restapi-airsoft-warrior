@@ -138,7 +138,7 @@ const setCookie = async (req, res) => {
 }
 
 const createUser = async (req,res) =>{
-    const path = req.file;
+    const path = req.file.path;
     const {email,age,password,cpassword} = req.body
     let image_url
 

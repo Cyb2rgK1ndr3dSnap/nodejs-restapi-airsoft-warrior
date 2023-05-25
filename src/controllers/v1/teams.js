@@ -31,7 +31,7 @@ const getTeam = async (req,res) => {
         res.status(500).json({isSuccess:false,error:"Error al obtener el equipo, contacté a soporte"});
     }
 }
-
+/////////////////TERMINAR
 const createTeam = (req,res) => {
     
     try {

@@ -50,12 +50,12 @@ const getProduct = async (req ,res)=>{
 }
 
 const createProduct = async (req, res)=>{
-    const uploader = async (path) => await uploads(path, 'products');
+    //const uploader = async (path) => await uploads(path, 'products');
     try{
-        const path = req.file;
+        const path = req.file.path;
         const{id_category,name,description,price,stock,active}= req.body;
             //const { path } = file;
-            const image_url = await uploader(path)
+            const image_url = await uploads(path, 'products');
             //fs.unlinkSync(path)
             if(image_url.url){
                 const result = await prisma.products.create({
@@ -84,7 +84,7 @@ const createProduct = async (req, res)=>{
 }
 
 const updateProduct = async (req,res)=>{
-    const path = req.file;
+    const path = req.file.path;
     const{id}= req.params;
     const{id_category,name,description,price,stock,active} = req.body;
     const bytes = uuidParse.parse(id);
@@ -109,7 +109,7 @@ const updateProduct = async (req,res)=>{
             console.log(response)
         }
 
-        if(file===undefined || response.response === "ok" || response.response === "not found"){
+        if(path===undefined || response.response === "ok" || response.response === "not found"){
             const result = await prisma.products.update({
                 where : {
                     id:Buffer.from(bytes)

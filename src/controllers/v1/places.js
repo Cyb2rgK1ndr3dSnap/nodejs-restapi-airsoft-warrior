@@ -38,7 +38,7 @@ const getPlace = async (req,res) => {
 }
 
 const createPlace = async (req,res) =>{
-    const path = req.file
+    const path = req.file.path
     const {name,description,ubication,latitude,longitude,ambiente} = req.body
     try {
         //const { path } = file;
@@ -68,12 +68,69 @@ const createPlace = async (req,res) =>{
     }
 }
 
-const updatePlace = (req,res) =>{
+const updatePlace = async (req,res) =>{
+    const path = req.file.path
+    const {id} = req.query
+    const {name,description,ubication,latitude,longitude,ambiente} = req.body
+    let image_url = {}
+    let response = "";
+    try {
+        
+        if(path){
+            image_url = await uploads(path,"places")
 
+            const product = await prisma.places.findUnique({
+                where:{
+                    id:id
+                },
+                select:{
+                    image_url:true
+                }
+            })
+
+            response = await deletes(product.image_url.id)
+            console.log(response)
+        }
+
+        if(path===undefined || response === "ok" || response === "not found"){
+            const result = await prisma.places.update({
+                where:{
+                    id:id
+                },
+                data:{
+                    name: name || undefined,
+                    image_url: image_url || undefined,
+                    description: description || undefined,
+                    ubication: ubication || undefined,
+                    latitude: latitude || undefined,
+                    longitude: longitude || undefined,
+                    ambiente: ambiente || undefined
+                }
+            })
+            console.log(result)
+            if(result){
+                return res.status(200).json({message:"Información actualizada correctamente"})
+            }
+            return res.status(500).json({message:"Error al actualizar información"})
+        }
+    } catch (error) {
+        console.log(e)
+        res.status(500).json({isSuccess:false,message:"Error al actualizar lugar, comuniquese con soporte técnico"})
+    }
 }
 
-const deletePlace = (req,res) =>{
-
+const deletePlace = async (req,res) =>{
+    const {id} = req.query
+    try {
+        const result = await prisma.places.delete({
+            where:{
+                id:id
+            }
+        })
+    } catch (error) {
+        console.log(e)
+        res.status(500).json(error)
+    }
 }
 
 module.exports = {

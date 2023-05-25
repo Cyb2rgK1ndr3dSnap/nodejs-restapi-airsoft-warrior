@@ -35,25 +35,35 @@ const createCategory = async(req,res)=>{
 const updateCategory = async(req,res)=>{
     const {id} = req.params;
     const {name} = req.body;
-    const result = await prisma.categories.update({
-        where:{
-            id:parseInt(id)
-        },
-        data:{
-            name:name
-        }
-    })
-    res.status(204)
+    try{
+        const result = await prisma.categories.update({
+            where:{
+                id:parseInt(id)
+            },
+            data:{
+                name:name
+            }
+        })
+        return res.status(204)
+    }catch(error){
+        console.log(error)
+        res.status(500).json(error)
+    }
 }
 
 const deleteCategory = async(req,res)=>{
     const {id} = req.params;
-    const result = await prisma.categories.delete({
-        where:{
-            id:parseInt(id)
-        }
-    })
-    res.status(204)
+    try {
+        const result = await prisma.categories.delete({
+            where:{
+                id:parseInt(id)
+            }
+        })
+        res.status(204)
+    } catch (error) {
+        console.log(error)
+        res.status(500).json(error)
+    }
 }
 
 module.exports = {

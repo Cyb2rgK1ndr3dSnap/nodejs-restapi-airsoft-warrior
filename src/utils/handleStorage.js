@@ -1,4 +1,6 @@
 const multer = require("multer");
+const path = require("path");
+
 
 const multerStorage = multer.diskStorage({
   destination: (request, file, callback) => {
@@ -21,7 +23,7 @@ const fileFilter = (req, file, cb) => {
 
 multerUpload = multer({ 
     storage: multer.diskStorage({}),
-    limits:{ fileSize: 1024 * 1024},
+    limits:{ fileSize: 1024 * 1024 * 2},
     fileFilter: fileFilter
 });
 
