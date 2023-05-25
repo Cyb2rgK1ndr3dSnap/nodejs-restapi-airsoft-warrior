@@ -6,7 +6,7 @@ const router = Router()
 //const redirectURI = "google";
 const {
   getGoogleAuthURL,
-  setCookie,
+  loginUserGoogle,
   getCookie,
   deleteCookie,
   createUser,
@@ -21,7 +21,7 @@ const {
 router
     .get("/google/url", getGoogleAuthURL)
 
-    .get(`/google`,setCookie)
+    .get(`/google`,loginUserGoogle)
 
     .get("/me", getCookie)
 

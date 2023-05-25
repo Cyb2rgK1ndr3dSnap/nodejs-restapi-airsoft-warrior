@@ -1,15 +1,23 @@
 const { Router } = require ("express");
 const router = Router()
 
+const {
+    getEvent,
+    getEvents,
+    createEvent,
+    updateEvent,
+    deleteEvent
+} = require("../../controllers/v1/events")
+
 router
-    .get(`/`,)
+    .get(`/`,getEvent)
 
-    .get(`/:id`,)
+    .get(`/:id`,getEvents)
 
-    .post(`/`,)
+    .post(`/`,createEvent)
 
-    .put(`/:id`,)
+    .put(`/:id`,updateEvent)
 
-    .delete(`/:id`,)
+    .delete(`/:id`,deleteEvent)
 
 module.exports = router

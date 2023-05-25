@@ -54,8 +54,8 @@ const createProduct = async (req, res)=>{
     try{
         const path = req.file.path;
         const{id_category,name,description,price,stock,active}= req.body;
+        const image_url = await uploads(path, 'products');
             //const { path } = file;
-            const image_url = await uploads(path, 'products');
             //fs.unlinkSync(path)
             if(image_url.url){
                 const result = await prisma.products.create({
@@ -75,8 +75,8 @@ const createProduct = async (req, res)=>{
                     isSuccess: false,
                     error:"Error al cargar imagen"
                 });
-    }catch(e){
-        console.log(e)
+    }catch(error){
+        console.log(error)
         res.status(500).json({
             message:'error',
         })

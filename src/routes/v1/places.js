@@ -13,12 +13,12 @@ const {
 router
     .get(`/`,getPlaces)
 
-    .get(`/:id`,)
+    .get(`/:id`,getPlace)
 
     .post(`/`,multerUpload.single('image'),createPlace)
 
-    .put(`/:id`,)
+    .put(`/:id`,multerUpload.single('image'),updatePlace)
 
-    .delete(`/:id`,)
+    .delete(`/:id`,deletePlace)
 
 module.exports = router

@@ -38,13 +38,13 @@ const getPlace = async (req,res) => {
 }
 
 const createPlace = async (req,res) =>{
-    const path = req.file.path
-    const {name,description,ubication,latitude,longitude,ambiente} = req.body
     try {
-        //const { path } = file;
+        const path = req.file.path
+        const {name,description,ubication,latitude,longitude,ambiente} = req.body
         const image_url = await uploads(path,"places");
+        //const { path } = file;
         //fs.unlinkSync(path);
-        if(image.url){
+        if(image_url.url){
             const result = await prisma.places.create({
                 data:{
                     name,
@@ -63,8 +63,11 @@ const createPlace = async (req,res) =>{
             message:"Error al cargar imagen"
         })
     } catch (error) {
-        console.log(e)
-        res.status(500).json(error)
+        console.log(error)
+        res.status(500).json({
+            isSucces:false,
+            message:"Error al guardar lugar, contacté con soporte técnico"
+        })
     }
 }
 
@@ -109,7 +112,8 @@ const updatePlace = async (req,res) =>{
             })
             console.log(result)
             if(result){
-                return res.status(200).json({message:"Información actualizada correctamente"})
+                //return res.status(200).json({message:"Información actualizada correctamente"})
+                return res.status(204)
             }
             return res.status(500).json({message:"Error al actualizar información"})
         }
@@ -126,6 +130,12 @@ const deletePlace = async (req,res) =>{
             where:{
                 id:id
             }
+        })
+        if(result) return res.status(204)
+
+        return res.status(500).json({
+            isSuccess:false,
+            message:"Erroe al eliminar lugar, contactee con soporte técnico"
         })
     } catch (error) {
         console.log(e)

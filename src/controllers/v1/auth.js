@@ -66,8 +66,8 @@ const getTokens = async ({ code, clientId, clientSecret, redirectUri }) => {
         throw new Error(error.message)
       })
 }
-
-const setCookie = async (req, res) => {
+//const setCookie = async (req, res)
+const loginUserGoogle = async (req, res) => {
     const code = req.query.code;
     let result = "";
     const { id_token, access_token } = await getTokens({
@@ -235,6 +235,10 @@ const loginUser = async (req,res)=>{
     }
 }
 
+const updateUser = async (req,res) => {
+
+}
+
 const getCookie = async (req, res) => {
     try {
       const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].token);
@@ -264,7 +268,7 @@ const deleteCookie = (req,res) =>{
 
 module.exports = {
     getGoogleAuthURL,
-    setCookie,
+    loginUserGoogle,
     getCookie,
     deleteCookie,
     createUser,
