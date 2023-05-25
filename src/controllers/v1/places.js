@@ -51,8 +51,8 @@ const createPlace = async (req,res) =>{
                     image_url,
                     description,
                     ubication,
-                    latitude,
-                    longitude,
+                    latitude: parseFloat(latitude),
+                    longitude: parseFloat(longitude),
                     ambiente
                 }
             })
@@ -105,8 +105,8 @@ const updatePlace = async (req,res) =>{
                     image_url: image_url || undefined,
                     description: description || undefined,
                     ubication: ubication || undefined,
-                    latitude: latitude || undefined,
-                    longitude: longitude || undefined,
+                    latitude: parseFloat(latitude) || undefined,
+                    longitude: parseFloat(longitude) || undefined,
                     ambiente: ambiente || undefined
                 }
             })
