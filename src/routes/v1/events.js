@@ -10,15 +10,21 @@ const {
     deleteEvent
 } = require("../../controllers/v1/events")
 
+const {
+    validateId,
+    validateCreate,
+    validateUpdate
+} = require("../../validators/events")
+
 router
     .get(`/`,getEvents)
 
-    .get(`/:id`,getEvent)
+    .get(`/:id`,validateId,getEvent)
 
-    .post(`/`,createEvent)
+    .post(`/`,validateId,validateCreate,createEvent)
 
-    .put(`/:id`,updateEvent)
+    .put(`/:id`,validateId,validateCreate,updateEvent)
 
-    .delete(`/:id`,deleteEvent)
+    .delete(`/:id`,validateId,deleteEvent)
 
 module.exports = router

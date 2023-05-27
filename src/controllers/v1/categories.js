@@ -44,7 +44,7 @@ const updateCategory = async(req,res)=>{
                 name:name
             }
         })
-        return res.status(204)
+        return res.status(204).json()
     }catch(error){
         console.log(error)
         res.status(500).json(error)

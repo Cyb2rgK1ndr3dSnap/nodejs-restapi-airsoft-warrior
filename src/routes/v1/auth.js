@@ -10,11 +10,13 @@ const {
   getCookie,
   deleteCookie,
   createUser,
+  updateUser,
   loginUser
 } = require("../../controllers/v1/auth")
 
 const {
   validateRegister,
+  validateUpdate,
   validateLogin
 } = require("../../validators/auth")
 
@@ -30,6 +32,8 @@ router
     .post("/register",multerUpload.single('image'),validateRegister,createUser)
 
     .post(`/login`,validateLogin,loginUser)
+    
+    .put(`/`,multerUpload.single('image'),validateUpdate,updateUser)
 
     //.post("/login",authGoogle,googleSignup)
 

@@ -9,107 +9,130 @@ datasource db {
 }
 
 model users {
-  id          Bytes     @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
-  id_google   String?   @db.VarChar(100)
-  image_url   Json
-  rol         users_rol @default(user)
-  name        String    @db.VarChar(30)
-  lastname    String?   @db.VarChar(30)
-  age         Int?
-  phonenumber String?   @db.VarChar(16)
-  email       String    @unique(map: "email") @db.VarChar(50)
-  password    String?   @db.VarChar(150)
-  created_at  DateTime  @default(now()) @db.Timestamp(0)
-  updated_at  DateTime  @default(now()) @db.Timestamp(0)
+  id                   Bytes                  @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  id_google            String?                @db.VarChar(100)
+  image_url            Json
+  rol                  users_rol              @default(user)
+  name                 String                 @db.VarChar(30)
+  lastname             String?                @db.VarChar(30)
+  age                  Int?
+  phonenumber          String?                @db.VarChar(16)
+  email                String                 @unique(map: "email") @db.VarChar(50)
+  password             String?                @db.VarChar(150)
+  created_at           DateTime               @default(now()) @db.Timestamp(0)
+  updated_at           DateTime               @default(now()) @db.Timestamp(0)
+  teams_users          teams_users[]
+  instructors          instructors[]
+  orders               orders[]
+  events_opinions      events_opinions[]
+  instructors_opinions instructors_opinions[]
+  users_events         users_events[]
 }
 
 model teams {
-  id          Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  id          Bytes         @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
   image_url   Json
-  name        String   @unique(map: "name") @db.VarChar(255)
-  description String?  @db.VarChar(255)
-  created_by  Bytes    @db.Binary(16)
-  created_at  DateTime @default(now()) @db.Timestamp(0)
-  updated_at  DateTime @default(now()) @db.Timestamp(0)
+  name        String        @unique(map: "name") @db.VarChar(255)
+  description String?       @db.VarChar(255)
+  created_by  Bytes         @db.Binary(16)
+  created_at  DateTime      @default(now()) @db.Timestamp(0)
+  updated_at  DateTime      @default(now()) @db.Timestamp(0)
+  teams_users teams_users[]
 
   @@index([created_by], map: "fk_teams_1")
 }
 
 model teams_users {
   id       Int      @id @default(autoincrement())
-  id_teams Bytes    @db.Binary(16)
-  id_users Bytes    @db.Binary(16)
+  team     teams    @relation(fields: [id_team], references: [id])
+  id_team  Bytes    @db.Binary(16)
+  user     users    @relation(fields: [id_user], references: [id])
+  id_user  Bytes    @db.Binary(16)
   accepted Boolean?
 
-  @@index([id_teams], map: "fk_teams_users_1")
-  @@index([id_users], map: "fk_teams_users_2")
+  @@index([id_team], map: "fk_teams_users_1")
+  @@index([id_user], map: "fk_teams_users_2")
 }
 
 model instructors {
-  id          Bytes   @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
-  id_user     Bytes   @db.Binary(16)
-  video_url   String? @db.VarChar(250)
-  description String  @db.VarChar(250)
-  specialist  Json
+  id                   Bytes                  @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  user                 users                  @relation(fields: [id_user], references: [id])
+  id_user              Bytes                  @db.Binary(16)
+  video_url            String?                @db.VarChar(250)
+  description          String                 @db.VarChar(250)
+  specialist           Json
+  instructors_opinions instructors_opinions[]
 
   @@index([id_user], map: "fk_instructor_1")
 }
 
 model categories {
-  id   Int     @id @default(autoincrement())
-  name String? @unique(map: "name") @db.VarChar(50)
+  id       Int        @id @default(autoincrement())
+  name     String?    @unique(map: "name") @db.VarChar(50)
+  products products[]
 }
 
 model orders {
-  id         Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
-  id_user    Bytes    @db.Binary(16)
-  total      Decimal  @default(0.00) @db.Decimal(5, 2)
-  paid       Boolean  @default(false)
-  closed     Boolean  @default(false)
-  created_at DateTime @default(now()) @db.Timestamp(0)
-  updated_at DateTime @default(now()) @db.Timestamp(0)
+  id              Bytes             @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  user            users             @relation(fields: [id_user], references: [id])
+  id_user         Bytes             @db.Binary(16)
+  total           Decimal           @default(0.00) @db.Decimal(5, 2)
+  paid            Boolean           @default(false)
+  closed          Boolean           @default(false)
+  created_at      DateTime          @default(now()) @db.Timestamp(0)
+  updated_at      DateTime          @default(now()) @db.Timestamp(0)
+  orders_products orders_products[]
 
   @@index([id_user], map: "fk_orders_1")
 }
 
 model orders_products {
-  id_orders   Bytes @db.Binary(16)
-  id_products Bytes @db.Binary(16)
+  order       orders   @relation(fields: [id_orders], references: [id])
+  id_orders   Bytes    @db.Binary(16)
+  product     products @relation(fields: [id_products], references: [id])
+  id_products Bytes    @db.Binary(16)
   quantity    Int
 
   @@id([id_orders, id_products])
+  @@index([id_orders], map: "fk_orders_products_1")
   @@index([id_products], map: "fk_orders_products_2")
 }
 
 model products {
-  id          Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
-  id_category Int
-  image_url   Json
-  name        String   @db.VarChar(255)
-  description String   @db.VarChar(255)
-  price       Decimal  @db.Decimal(5, 2)
-  stock       Int      @default(0)
-  active      Boolean
-  created_at  DateTime @default(now()) @db.Timestamp(0)
-  updated_at  DateTime @default(now()) @db.Timestamp(0)
+  id              Bytes             @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  category        categories        @relation(fields: [id_category], references: [id])
+  id_category     Int
+  image_url       Json
+  name            String            @db.VarChar(255)
+  description     String            @db.VarChar(255)
+  price           Decimal           @db.Decimal(5, 2)
+  stock           Int               @default(0)
+  active          Boolean
+  created_at      DateTime          @default(now()) @db.Timestamp(0)
+  updated_at      DateTime          @default(now()) @db.Timestamp(0)
+  orders_products orders_products[]
 
   @@index([id_category], map: "fk_products_1")
 }
 
 model events {
-  id              Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
-  place           places   @relation(fields: [id_place], references: [id])
+  id              Bytes             @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  place           places            @relation(fields: [id_place], references: [id])
   id_place        Int
-  description     String   @db.VarChar(255)
-  price           Decimal  @db.Decimal(5, 2)
-  fecha_de_evento DateTime @db.Date
+  description     String            @db.VarChar(255)
+  price           Decimal           @db.Decimal(5, 2)
+  fecha_de_evento DateTime          @db.Date
+  events_opinions events_opinions[]
+  users_events    users_events[]
 
   @@index([id_place], map: "fk_events_1")
 }
 
 model events_opinions {
   id           Int    @id @default(autoincrement())
+  event        events @relation(fields: [id_event], references: [id])
   id_event     Bytes  @db.Binary(16)
+  user         users  @relation(fields: [id_user], references: [id])
   id_user      Bytes  @db.Binary(16)
   opinion      String @db.VarChar(255)
   calification Int
@@ -119,10 +142,12 @@ model events_opinions {
 }
 
 model instructors_opinions {
-  id           Int    @id @default(autoincrement())
-  id_instrutor Bytes  @db.Binary(16)
-  id_user      Bytes  @db.Binary(16)
-  opinion      String @db.VarChar(150)
+  id           Int         @id @default(autoincrement())
+  instructor   instructors @relation(fields: [id_instrutor], references: [id])
+  id_instrutor Bytes       @db.Binary(16)
+  user         users       @relation(fields: [id_user], references: [id])
+  id_user      Bytes       @db.Binary(16)
+  opinion      String      @db.VarChar(150)
   calification Int
 
   @@index([id_instrutor], map: "fk_instructors_opinions_1")
@@ -142,12 +167,14 @@ model places {
 }
 
 model users_events {
-  id       Int   @id @default(autoincrement())
-  id_event Bytes @db.Binary(16)
-  id_users Bytes @db.Binary(16)
+  id       Int    @id @default(autoincrement())
+  event    events @relation(fields: [id_event], references: [id])
+  id_event Bytes  @db.Binary(16)
+  user     users  @relation(fields: [id_user], references: [id])
+  id_user  Bytes  @db.Binary(16)
 
   @@index([id_event], map: "fk_users_events_1")
-  @@index([id_users], map: "fk_users_events_2")
+  @@index([id_user], map: "fk_users_events_2")
 }
 
 enum users_rol {

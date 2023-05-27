@@ -8,4 +8,14 @@ const validateName = [
     },
 ]
 
-module.exports = {validateName}
+const validateId = [
+    check("id").exists().notEmpty().isInt(),
+    (req, res, next) => {
+        validateResult(req, res, next);
+    },
+]
+
+module.exports = {
+    validateName,
+    validateId
+}

@@ -1,7 +1,8 @@
 const bcrypt = require("bcryptjs");
+require("dotenv/config")
 
 const encrypt = async (textPlain) => {
-    return hash = await bcrypt.hash(textPlain, 8);
+    return hash = await bcrypt.hash(textPlain, process.env.HASH_SECRET);
 };
 
 const compare = async (passwordPlain, hashPassword) => {

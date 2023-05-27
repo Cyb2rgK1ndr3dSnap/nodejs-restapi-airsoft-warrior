@@ -113,7 +113,7 @@ const updatePlace = async (req,res) =>{
             console.log(result)
             if(result){
                 //return res.status(200).json({message:"Información actualizada correctamente"})
-                return res.status(204)
+                return res.status(204).json()
             }
             return res.status(500).json({message:"Error al actualizar información"})
         }

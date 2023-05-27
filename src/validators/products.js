@@ -10,6 +10,10 @@ const validatePagination = (req, res, next) => {
     next()
 }
 
+const validateCreate = [
+    
+]
+
 const validateId = [
     check("id").exists().notEmpty().isUUID(),
     (req, res, next) => {

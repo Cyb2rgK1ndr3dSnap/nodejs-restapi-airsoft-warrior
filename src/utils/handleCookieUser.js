@@ -12,7 +12,7 @@ const cookieCreate = async (req,res,cookieName,value,maxAge) =>{
     {
         domain:`${process.env.COOKIE_SET_DOMAIN}`,
         maxAge: maxAge,
-        httpOnly: false,
+        httpOnly: true,
         secure: true,
         sameSite:"None"
     });

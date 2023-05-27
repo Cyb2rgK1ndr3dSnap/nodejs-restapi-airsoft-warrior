@@ -139,13 +139,15 @@ const loginUserGoogle = async (req, res) => {
 
 const createUser = async (req,res) =>{
     const {email,age,password,cpassword} = req.body
-    let image_url
-
+    let image_url;
+    let name;
     if(!(password===cpassword)) 
         return res.status(500).json({isSuccess:false,error:"Las constraseña no coinciden"})
 
-    const name = email.split("@").shift();
-    
+    if(email){
+        name = email.split("@").shift();
+    }
+
     try {
 
         const user = await prisma.users.findFirst({
@@ -236,7 +238,69 @@ const loginUser = async (req,res)=>{
 }
 
 const updateUser = async (req,res) => {
+    try {
+        let image_url;
+        //COMPROBAR QUE LA NUEVA CONTRASEÑA, SE MÁS DE 8 CARACTERES
+        const {email,name,lastname,age,phonenumber,password,newpassword,cnewpassword} = req.body
+        if(password){
+            if(newpassword != cnewpassword) return res.status(400).json({
+                isSuccess:false,
+                message:"Nueva contraseña no coincidé"
+            })
 
+            const user = await prisma.users.findUnique({
+                where:{
+                    email:email
+                },
+                select:{
+                    password:true,
+                    id_google:true
+                }
+            })
+
+            if(user.id_google) return res.status(400).json({
+                isSuccess:false,
+                message:"No puede realizar esa acción"
+            })
+
+            const checkPassword = await compare(password,user.password)
+            if(checkPassword == false) return res.status(400).json({
+                isSuccess:false,
+                message:"Contraseña incorrecta"
+            })
+        }
+        if(req.file){
+            const path = req.file.path;
+            image_url = await uploads(path,"users");
+            if(!image_url) return res.status(500).json({
+                isSuccess:false,
+                message:"Error al cargar imagen"
+            })
+        }
+        const result = await prisma.users.update({
+            where:{
+                email:email  
+            },
+            data:{
+                name: name || undefined,
+                lastname: lastname || undefined,
+                age: age || undefined,
+                phonenumber: phonenumber || undefined,
+                password: newpassword || undefined,
+                image_url: image_url || undefined
+            }
+        });
+
+        if (result) return res.status(204).json()
+
+        return res.status(500).json({
+            isSuccess:false,
+            message:"Error al actualizar información"
+        })
+    } catch (error) {
+        console.log(e)
+        res.status(500).json({isSuccess:false,message:"Error al actualizar usuario, comuniquese con soporte técnico"})
+    }
 }
 
 const getCookie = async (req, res) => {
@@ -272,5 +336,6 @@ module.exports = {
     getCookie,
     deleteCookie,
     createUser,
+    updateUser,
     loginUser
 }
