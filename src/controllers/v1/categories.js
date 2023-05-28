@@ -59,7 +59,12 @@ const deleteCategory = async(req,res)=>{
                 id:parseInt(id)
             }
         })
-        res.status(204)
+        if(result) return res.status(204).json()
+
+        return res.status(500).json({
+            isSuccess:false,
+            message:"Error al eliminar categoria, intentelo de nuevo o contacté con soporté"
+        })
     } catch (error) {
         console.log(error)
         res.status(500).json(error)

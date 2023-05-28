@@ -127,7 +127,7 @@ const loginUserGoogle = async (req, res) => {
         const uuid = uuidParse.unparse(user.id)
         user.id = uuid
 
-        user["token"]= await tokenSign(user)
+        user = await tokenSign(user)
         cookieCreate(req,res,process.env.COOKIE_NAME,user,3600000)
 
         return res.redirect(`${process.env.UI_ROOT_URI}`);
@@ -212,10 +212,16 @@ const loginUser = async (req,res)=>{
                 name:true,
                 phonenumber:true,
                 email:true,
-                password:true
+                password:true,
+                id_google:true
             }
         })
         
+        if(user.id_google) return res.status(500).json({
+            isSuccess:false,
+            message:"Email o contraseña, invalidos"
+        })
+
         const checkPassword = await compare(password,user.password)
 
         if(checkPassword===true){
@@ -223,7 +229,7 @@ const loginUser = async (req,res)=>{
             const uuid = uuidParse.unparse(user.id)
             user.id = uuid
             //const token = await jwt.sign(user, process.env.JWT_SECRET);
-            user["token"]= await tokenSign(user)
+            user = await tokenSign(user)
 
             cookieCreate(req,res,process.env.COOKIE_NAME,user,3600000)
             return res.redirect(`${process.env.UI_ROOT_URI}`);
@@ -302,15 +308,16 @@ const updateUser = async (req,res) => {
 
 const getCookie = async (req, res) => {
     try {
-      const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].token);
-      return res.status(200).json
+      const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].value);
+      return res.status(200).json(decoded)
+      /*return res.status(200).json
         ({
             "username":req.cookies[process.env.COOKIE_NAME].username,
             "url_img_user":req.cookies[process.env.COOKIE_NAME].url_img_user,
             "age":req.cookies[process.env.COOKIE_NAME].age,
             "phonenumber":req.cookies[process.env.COOKIE_NAME].phonenumber,
             "token":decoded
-        });
+        });*/
     } catch (err) {
       console.log(err);
       res.status(500).json(err);

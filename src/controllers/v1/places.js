@@ -135,7 +135,7 @@ const deletePlace = async (req,res) =>{
 
         return res.status(500).json({
             isSuccess:false,
-            message:"Erroe al eliminar lugar, contactee con soporte técnico"
+            message:"Error al eliminar lugar, contactee con soporte técnico"
         })
     } catch (error) {
         console.log(e)

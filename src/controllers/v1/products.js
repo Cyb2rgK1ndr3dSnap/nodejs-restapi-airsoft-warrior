@@ -154,11 +154,14 @@ const deleteProduct = async (req,res)=>{
             where:  {
                 id:Buffer.from(bytes),
             }
-        })
-        res.status(200).json(result2)
-    }else{
-        res.status(500).json({message:"Error al eliminar imagen"})
+        })   
+        if(result2) return res.status(204).json()
     }
+    
+    res.status(500).json({
+        isSuccess:false,
+        message:"Error al eliminar imagen"
+    })
 }
 
 module.exports = {

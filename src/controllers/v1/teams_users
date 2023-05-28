@@ -1,0 +1,41 @@
+const {prisma} = require("../../config/connection.js")
+const uuidParse = require('uuid-parse');
+
+const getMembers = async (req,res) =>{
+    const id_team = req.body
+    const bytes = uuidParse.parse(id_team)
+    const result = await prisma.teams_users.findMany({
+        where:{
+            id_team:Buffer.from(bytes),
+            accepted:true
+        }
+    })
+
+    if(result) return res.status(200).json(result)
+
+    return res.status(500).json({
+        isSuccess:false,
+        message:"Error al obtener miembros de equipo, intentelo de nuevo o contacté con soporté"
+    })
+}
+
+const getMember = async (req,res) =>{
+    const id_team = req.body
+    const bytes = uuidParse.parse(id_team)
+    const result = await prisma.teams_users.findMany({
+        where:{
+            id_team:Buffer.from(bytes)
+        }
+    })
+
+    if(result) return res.status(200).json(result)
+
+    return res.status(500).json({
+        isSuccess:false,
+        message:"Error al obtener miembros de equipo, intentelo de nuevo o contacté con soporté"
+    })
+}
+
+module.exports = {
+
+}

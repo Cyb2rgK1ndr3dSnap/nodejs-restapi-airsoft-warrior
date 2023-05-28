@@ -1,15 +1,23 @@
 const { Router } = require ("express");
 const router = Router()
 
+const {
+    getTeams,
+    getTeam,
+    createTeam,
+    updateTeam,
+    deleteTeam
+} = require("../../controllers/v1/teams")
+
 router
-    .get(`/`,)
+    .get(`/`,getTeams)
 
-    .get(`:id`,)
+    .get(`:id`,getTeam)
 
-    .post(`/`,)
+    .post(`/`,createTeam)
 
-    .put(`/:id`,)
+    .put(`/:id`,updateTeam)
 
-    .delete(`/:id`,)
+    .delete(`/:id`,deleteTeam)
 
 module.exports = router;

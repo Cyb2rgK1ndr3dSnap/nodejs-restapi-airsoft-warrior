@@ -102,7 +102,7 @@ const deleteEvent = async (req,res) => {
                 id:Buffer.from(bytes)
             }
         })
-        if(result) return res.status(204)
+        if(result) return res.status(204).json()
 
         return res.status(500).json({
             isSuccess:false,
