@@ -21,9 +21,9 @@ router
 
     .get(`/:id`,validateId,getEvent)
 
-    .post(`/`,validateId,validateCreate,createEvent)
+    .post(`/`,validateCreate,createEvent)
 
-    .put(`/:id`,validateId,validateCreate,updateEvent)
+    .put(`/:id`,validateId,validateUpdate,updateEvent)
 
     .delete(`/:id`,validateId,deleteEvent)
 

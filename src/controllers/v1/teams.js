@@ -32,10 +32,39 @@ const getTeam = async (req,res) => {
     }
 }
 /////////////////TERMINAR
-const createTeam = (req,res) => {
-    
+const createTeam = async (req,res) => {
+    const {name,description,userCookieId} = req.body
+    const bytes = uuidParse.parse(userCookieId)
+    let image_url;
     try {
-        
+        const checkExist = await prisma.teams_users.findUnique({
+            where:{
+                id:Buffer.from(bytes),
+                accepted:true
+            }
+        })
+
+        if(req.file){
+            const path = req.file.path;
+            image_url = await uploads(path,"teams");
+        }else{
+            image_url = {
+                id:"teams/defaultteam_cv49jo",
+                url:"https://res.cloudinary.com/dgfhyw8un/image/upload/v1685232562/teams/defaultteam_cv49jo.png"
+            }
+        }
+
+        if(checkExist)
+            return res.status(400).json({
+                isSuccess:false,
+                message:"No puedo realizar está acción ya pertenece a un equipo"
+            })
+        //FALTAAAAAAAAAAAAAAAAAAAAAAAAA
+        const result = await prisma.teams.create({
+            data:{
+
+            }
+        })
     } catch (error) {
         console.log(error);
         res.status(500).json({isSuccess:false,error:"Error al crear equipo, contacté a soporte"});

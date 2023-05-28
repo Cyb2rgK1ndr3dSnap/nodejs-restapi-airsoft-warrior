@@ -150,7 +150,7 @@ const createUser = async (req,res) =>{
 
     try {
 
-        const user = await prisma.users.findFirst({
+        const user = await prisma.users.findUnique({
             where:{
                 email:email
             }
@@ -160,13 +160,11 @@ const createUser = async (req,res) =>{
             return res.status(500).json({isSuccess:false,error:"Email no disponible"})
 
         if(req.file){
-            //const { path } = file;
             const path = req.file.path;
             image_url = await uploads(path,"users");
-            //fs.unlinkSync(path);
         }else{
             image_url = {
-                id:"defaultuser_wn4ieo",
+                id:"users/defaultuser_wn4ieo",
                 url:"https://res.cloudinary.com/dgfhyw8un/image/upload/v1684645346/users/defaultuser_wn4ieo.png"
             }
         }
@@ -236,18 +234,16 @@ const loginUser = async (req,res)=>{
         res.status(500).json({isSuccess:false,message:"Error, comuniquese con soporte técnico"})
     }
 }
-
+//COMPROBAR LA IMAGEN SI EXISTE Y NO ES LA DE POR DEFECTO Y ELIMINARLA
 const updateUser = async (req,res) => {
     try {
         let image_url;
-        //COMPROBAR QUE LA NUEVA CONTRASEÑA, SE MÁS DE 8 CARACTERES
         const {email,name,lastname,age,phonenumber,password,newpassword,cnewpassword} = req.body
         if(password){
             if(newpassword != cnewpassword) return res.status(400).json({
                 isSuccess:false,
                 message:"Nueva contraseña no coincidé"
             })
-
             const user = await prisma.users.findUnique({
                 where:{
                     email:email
@@ -272,10 +268,11 @@ const updateUser = async (req,res) => {
         if(req.file){
             const path = req.file.path;
             image_url = await uploads(path,"users");
-            if(!image_url) return res.status(500).json({
-                isSuccess:false,
-                message:"Error al cargar imagen"
-            })
+                if(!image_url){
+
+                    return res.status(500).json({isSuccess:false,message:"Error al cargar imagen"
+                })
+            }
         }
         const result = await prisma.users.update({
             where:{

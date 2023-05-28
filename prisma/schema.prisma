@@ -20,13 +20,14 @@ model users {
   email                String                 @unique(map: "email") @db.VarChar(50)
   password             String?                @db.VarChar(150)
   created_at           DateTime               @default(now()) @db.Timestamp(0)
-  updated_at           DateTime               @default(now()) @db.Timestamp(0)
+  updated_at           DateTime               @default(now()) @db.Timestamp(0) @updatedAt
   teams_users          teams_users[]
   instructors          instructors[]
   orders               orders[]
   events_opinions      events_opinions[]
   instructors_opinions instructors_opinions[]
   users_events         users_events[]
+  teams                teams[]
 }
 
 model teams {
@@ -34,9 +35,10 @@ model teams {
   image_url   Json
   name        String        @unique(map: "name") @db.VarChar(255)
   description String?       @db.VarChar(255)
+  create      users         @relation(fields: [created_by], references: [id])
   created_by  Bytes         @db.Binary(16)
   created_at  DateTime      @default(now()) @db.Timestamp(0)
-  updated_at  DateTime      @default(now()) @db.Timestamp(0)
+  updated_at  DateTime      @default(now()) @db.Timestamp(0) @updatedAt
   teams_users teams_users[]
 
   @@index([created_by], map: "fk_teams_1")
@@ -80,7 +82,7 @@ model orders {
   paid            Boolean           @default(false)
   closed          Boolean           @default(false)
   created_at      DateTime          @default(now()) @db.Timestamp(0)
-  updated_at      DateTime          @default(now()) @db.Timestamp(0)
+  updated_at      DateTime          @default(now()) @db.Timestamp(0) @updatedAt
   orders_products orders_products[]
 
   @@index([id_user], map: "fk_orders_1")
@@ -109,7 +111,7 @@ model products {
   stock           Int               @default(0)
   active          Boolean
   created_at      DateTime          @default(now()) @db.Timestamp(0)
-  updated_at      DateTime          @default(now()) @db.Timestamp(0)
+  updated_at      DateTime          @default(now()) @db.Timestamp(0) @updatedAt
   orders_products orders_products[]
 
   @@index([id_category], map: "fk_products_1")

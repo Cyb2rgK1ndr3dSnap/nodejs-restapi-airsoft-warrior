@@ -4,7 +4,6 @@ const cors = require("cors")
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 require("dotenv/config")
-//const { PrismaClient } = require('@prisma/client');
 
 const PORT = process.env.PORT;
 
@@ -18,7 +17,7 @@ app.use(cookieParser());
 
 app.use(morgan("dev"));
 
-const whitelist = process.env.UI_ROOT_URI.split(' ');
+const whitelist = process.env.CORS_ORIGINS.split(' ');
 
 app.use(cors({
     origin:function (origin, callback) {
