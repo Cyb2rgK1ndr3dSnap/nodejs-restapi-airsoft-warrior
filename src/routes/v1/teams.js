@@ -1,6 +1,6 @@
 const { Router } = require ("express");
 const router = Router()
-
+const multerUpload = require("../../utils/handleStorage")
 const {
     getTeams,
     getTeam,
@@ -9,15 +9,19 @@ const {
     deleteTeam
 } = require("../../controllers/v1/teams")
 
+const {
+    chechAuth
+} = require("../../middleware/auth")
+
 router
     .get(`/`,getTeams)
 
     .get(`:id`,getTeam)
 
-    .post(`/`,createTeam)
+    .post(`/`,chechAuth,multerUpload.single('image'),createTeam)
 
-    .put(`/:id`,updateTeam)
+    .put(`/:id`,chechAuth,updateTeam)
 
-    .delete(`/:id`,deleteTeam)
+    .delete(`/:id`,chechAuth,deleteTeam)
 
 module.exports = router;

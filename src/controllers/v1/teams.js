@@ -33,12 +33,12 @@ const getTeam = async (req,res) => {
 
 const createTeam = async (req,res) => {
     const {name,description,userIdCookie} = req.body
-    const bytes = uuidParse.parse(userIdCookie)
+    const bytesUser = uuidParse.parse(userIdCookie)
     let image_url;
     try {
         const checkExist = await prisma.teams_users.findUnique({
             where:{
-                id:Buffer.from(bytes),
+                id:Buffer.from(bytesUser),
                 accepted:true
             }
         })
@@ -59,16 +59,27 @@ const createTeam = async (req,res) => {
                 message:"No puedo realizar está acción ya pertenece a un equipo"
             })
 
-        const result = await prisma.teams.create({
-            data:{
-                image_url,
-                name,
-                description,
-                created_by:userCookieId
-            }
+        const result = await prisma.$transaction( async prisma =>{
+            const createTeam = await prisma.teams.create({
+                data:{
+                    image_url,
+                    name,
+                    description,
+                    created_by:Buffer.from(bytesUser)
+                }
+            })
+
+            const createMember = await prisma.teams_users({
+                data:{
+                    id_team:Buffer.from(createTeam.id),
+                    id_user:Buffer.from(bytesUser),
+                    accepted:true
+                }
+            })
+            return {createTeam,createMember}
         })
 
-        if(result) return res.status(200).json({
+        if(result.createTeam && result.createMember) return res.status(200).json({
             isSuccess:true,
             message:"Equipo creado correctamente"
         })

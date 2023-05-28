@@ -131,7 +131,7 @@ const deletePlace = async (req,res) =>{
                 id:id
             }
         })
-        if(result) return res.status(204)
+        if(result) return res.status(204).json()
 
         return res.status(500).json({
             isSuccess:false,

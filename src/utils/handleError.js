@@ -7,7 +7,7 @@ const handleHttpError = (res, error) => {
 const handleErrorResponse = (res, message = "Algo ocurrio", code = 401) => {
     console.log("Error", message);
     res.status(code);
-    res.send({ error: message });
+    res.json({ error: message });
   };
   
   module.exports = { handleHttpError, handleErrorResponse };

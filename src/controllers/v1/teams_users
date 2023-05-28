@@ -4,38 +4,105 @@ const uuidParse = require('uuid-parse');
 const getMembers = async (req,res) =>{
     const id_team = req.body
     const bytes = uuidParse.parse(id_team)
-    const result = await prisma.teams_users.findMany({
-        where:{
-            id_team:Buffer.from(bytes),
-            accepted:true
-        }
-    })
-
-    if(result) return res.status(200).json(result)
-
-    return res.status(500).json({
-        isSuccess:false,
-        message:"Error al obtener miembros de equipo, intentelo de nuevo o contacté con soporté"
-    })
+    try {
+        const result = await prisma.teams_users.findMany({
+            where:{
+                id_team:Buffer.from(bytes),
+                accepted:true
+            }
+        })
+    
+        if(result) return res.status(200).json(result)
+    
+        return res.status(500).json({
+            isSuccess:false,
+            message:"Error al obtener miembros de equipo, intentelo de nuevo o contacté con soporté"
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({isSuccess:false,message:"Error, comuniquese con soporte técnico"})
+    }
 }
-
+//MODIFICAR EN OTRO MOMENTO
 const getMember = async (req,res) =>{
     const id_team = req.body
     const bytes = uuidParse.parse(id_team)
-    const result = await prisma.teams_users.findMany({
-        where:{
-            id_team:Buffer.from(bytes)
-        }
-    })
+    try {
+        const result = await prisma.teams_users.findMany({
+            where:{
+                id_team:Buffer.from(bytes)
+            }
+        })
+    
+        if(result) return res.status(200).json(result)
+    
+        return res.status(500).json({
+            isSuccess:false,
+            message:"Error al obtener miembros de equipo, intentelo de nuevo o contacté con soporté"
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({isSuccess:false,message:"Error, comuniquese con soporte técnico"})
+    }
+}
 
-    if(result) return res.status(200).json(result)
+const createMemberRequest = async (req,res) =>{
+    const {userIdCookie,teamId} = req.body
+    const bytesUser = uuidParse.parse(userIdCookie);
+    const bytesTeam = uuidParse.parse(teamId);
+    try {
+        const checkTeam = await prisma.teams.findUnique({
+            where:{
+                id:Buffer.from(bytesTeam)
+            }
+        })
 
-    return res.status(500).json({
-        isSuccess:false,
-        message:"Error al obtener miembros de equipo, intentelo de nuevo o contacté con soporté"
-    })
+        if(!checkTeam) return res.status(400).json({
+            isSuccess:false,
+            message:"Equipo al que solicita, no existé"
+        })
+
+        const checkUser = await prisma.teams_users.findUnique({
+            where:{
+                id_team:Buffer.from(bytesTeam),
+                id_user:Buffer.from(bytesUser)
+            }
+        })
+
+        if(checkUser) return res.status(400).json({
+            isSuccess:false,
+            message:"Ya ha solicitado a este equipo"
+        })
+
+        const result = await prisma.teams_users.create({
+            data:{
+                id_user:Buffer.from(bytesUser),
+                id_team:Buffer.from(bytesTeam)
+            }
+        })
+
+        if(result) return res.status(200).json({
+            isSuccess:true,
+            message:"Solicitud enviada exitosamente"
+        })
+        
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({isSuccess:false,message:"Error, comuniquese con soporte técnico"})
+    }
+}
+
+const acceptMember = async (req,res) =>{
+    try {
+        const checkCreatedBy = await prisma.teams_users.findUnique({
+            
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({isSuccess:false,message:"Error, comuniquese con soporte técnico"})
+    }
 }
 
 module.exports = {
-
+    getMembers
 }

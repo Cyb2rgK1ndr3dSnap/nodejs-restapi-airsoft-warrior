@@ -287,7 +287,7 @@ const updateUser = async (req,res) => {
             data:{
                 name: name || undefined,
                 lastname: lastname || undefined,
-                age: age || undefined,
+                age: parseInt(age) || undefined,
                 phonenumber: phonenumber || undefined,
                 password: newpassword || undefined,
                 image_url: image_url || undefined
