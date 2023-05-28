@@ -127,8 +127,8 @@ const loginUserGoogle = async (req, res) => {
         const uuid = uuidParse.unparse(user.id)
         user.id = uuid
 
-        user = await tokenSign(user)
-        cookieCreate(req,res,process.env.COOKIE_NAME,user,3600000)
+        token = await tokenSign(user)
+        cookieCreate(req,res,process.env.COOKIE_NAME,token,3600000)
 
         return res.redirect(`${process.env.UI_ROOT_URI}`);
       } catch (error) {
@@ -229,9 +229,9 @@ const loginUser = async (req,res)=>{
             const uuid = uuidParse.unparse(user.id)
             user.id = uuid
             //const token = await jwt.sign(user, process.env.JWT_SECRET);
-            user = await tokenSign(user)
+            const token = await tokenSign(user)
 
-            cookieCreate(req,res,process.env.COOKIE_NAME,user,3600000)
+            cookieCreate(req,res,process.env.COOKIE_NAME,token,3600000)
             return res.redirect(`${process.env.UI_ROOT_URI}`);
         }
         return res.status(500).json({isSuccess:false,message:"Email o contraseña incorrectos"})
@@ -310,14 +310,6 @@ const getCookie = async (req, res) => {
     try {
       const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].value);
       return res.status(200).json(decoded)
-      /*return res.status(200).json
-        ({
-            "username":req.cookies[process.env.COOKIE_NAME].username,
-            "url_img_user":req.cookies[process.env.COOKIE_NAME].url_img_user,
-            "age":req.cookies[process.env.COOKIE_NAME].age,
-            "phonenumber":req.cookies[process.env.COOKIE_NAME].phonenumber,
-            "token":decoded
-        });*/
     } catch (err) {
       console.log(err);
       res.status(500).json(err);
