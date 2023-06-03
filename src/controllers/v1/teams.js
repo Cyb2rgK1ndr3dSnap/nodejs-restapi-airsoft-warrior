@@ -1,10 +1,21 @@
 const {prisma} = require("../../config/connection.js")
 const uuidParse = require('uuid-parse');
 
+const {
+    uploads,
+    deletes
+} = require("../../utils/handleCloudinary.js")
 
 const getTeams = async (req,res) =>{
     try {
-        const result = await prisma.teams.findMany({})
+        const result = await prisma.teams.findMany({
+            select:{
+                id:true,
+                image_url:true,
+                name:true,
+                description:true,
+            }            
+        })
         result.forEach( (value, key, map) => {
             value.id=uuidParse.unparse(value.id);
         });
@@ -22,7 +33,21 @@ const getTeam = async (req,res) => {
         const result = await prisma.teams.findUnique({
             where:{
                 id:Buffer.from(bytes)
-            }
+            },
+            select:{
+                id:true,
+                image_url:true,
+                name:true,
+                description:true,
+                create:{
+                    select:{
+                        id:true,
+                        name:true,
+                        lastname:true,
+                        image_url:true
+                    }
+                }
+            }    
         })
         res.status(200).json(result);
     } catch (error) {
@@ -32,16 +57,34 @@ const getTeam = async (req,res) => {
 }
 
 const createTeam = async (req,res) => {
-    const {name,description,userIdCookie} = req.body
+    const {name,description} = req.body
+    const userIdCookie = req.userIdCookie
     const bytesUser = uuidParse.parse(userIdCookie)
     let image_url;
     try {
-        const checkExist = await prisma.teams_users.findUnique({
+        const checkName = await prisma.teams.findUnique({
             where:{
-                id:Buffer.from(bytesUser),
-                accepted:true
+                name:name
             }
         })
+
+        if(checkName) return res.status(400).json({
+            isSuccess:false,
+            message:"No puedo realizar está acción ya existé un equipo con ese nombre"
+        })
+
+        const checkExist = await prisma.teams_users.findFirst({
+            where:{
+                    id_user:Buffer.from(bytesUser),
+                    accepted:true
+            },
+        })
+
+        if(checkExist)
+            return res.status(400).json({
+                isSuccess:false,
+                message:"No puedo realizar está acción, ya pertenece a un equipo"
+            })
 
         if(req.file){
             const path = req.file.path;
@@ -53,12 +96,6 @@ const createTeam = async (req,res) => {
             }
         }
 
-        if(checkExist)
-            return res.status(400).json({
-                isSuccess:false,
-                message:"No puedo realizar está acción ya pertenece a un equipo"
-            })
-
         const result = await prisma.$transaction( async prisma =>{
             const createTeam = await prisma.teams.create({
                 data:{
@@ -69,7 +106,7 @@ const createTeam = async (req,res) => {
                 }
             })
 
-            const createMember = await prisma.teams_users({
+            const createMember = await prisma.teams_users.create({
                 data:{
                     id_team:Buffer.from(createTeam.id),
                     id_user:Buffer.from(bytesUser),
@@ -115,7 +152,7 @@ const deleteTeam = async (req,res) => {
                 id:Buffer.from(bytes)
             },
             select:{
-                created_by
+                created_by:true
             }
         })
 

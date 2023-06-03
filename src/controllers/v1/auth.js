@@ -102,7 +102,7 @@ const loginUserGoogle = async (req, res) => {
                 id_google:true,
                 image_url:true,
                 name:true,
-                email:true
+                email:true,
             }
         })
         
@@ -138,15 +138,10 @@ const loginUserGoogle = async (req, res) => {
 }
 
 const createUser = async (req,res) =>{
-    const {email,age,password,cpassword} = req.body
+    const {email,name,age,password,cpassword} = req.body
     let image_url;
-    let name;
     if(!(password===cpassword)) 
         return res.status(500).json({isSuccess:false,error:"Las constraseña no coinciden"})
-
-    if(email){
-        name = email.split("@").shift();
-    }
 
     try {
 
@@ -217,7 +212,7 @@ const loginUser = async (req,res)=>{
             }
         })
         
-        if(user.id_google) return res.status(500).json({
+        if(!user || user.id_google) return res.status(500).json({
             isSuccess:false,
             message:"Email o contraseña, invalidos"
         })
@@ -301,15 +296,15 @@ const updateUser = async (req,res) => {
             message:"Error al actualizar información"
         })
     } catch (error) {
-        console.log(e)
+        console.log(error)
         res.status(500).json({isSuccess:false,message:"Error al actualizar usuario, comuniquese con soporte técnico"})
     }
 }
 
 const getCookie = async (req, res) => {
     try {
-      const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].value);
-      return res.status(200).json(decoded)
+      //const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].value);
+      return res.status(200).json(req.cookies[process.env.COOKIE_NAME].value)
     } catch (err) {
       console.log(err);
       res.status(500).json(err);

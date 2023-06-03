@@ -57,9 +57,8 @@ model teams_users {
 }
 
 model instructors {
-  id                   Bytes                  @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
   user                 users                  @relation(fields: [id_user], references: [id])
-  id_user              Bytes                  @db.Binary(16)
+  id_user              Bytes                  @id @db.Binary(16)
   video_url            String?                @db.VarChar(250)
   description          String                 @db.VarChar(250)
   specialist           Json
@@ -145,7 +144,7 @@ model events_opinions {
 
 model instructors_opinions {
   id           Int         @id @default(autoincrement())
-  instructor   instructors @relation(fields: [id_instrutor], references: [id])
+  instructor   instructors @relation(fields: [id_instrutor], references: [id_user])
   id_instrutor Bytes       @db.Binary(16)
   user         users       @relation(fields: [id_user], references: [id])
   id_user      Bytes       @db.Binary(16)

@@ -3,7 +3,7 @@ require("dotenv/config");
 const cookieCreate = async (req,res,cookieName,value,maxAge) =>{
     await res.cookie(cookieName, 
     {
-        value
+        token:value
     }, 
     {
         domain:`${process.env.COOKIE_SET_DOMAIN}`,

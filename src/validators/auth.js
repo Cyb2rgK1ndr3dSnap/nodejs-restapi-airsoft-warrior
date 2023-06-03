@@ -3,6 +3,7 @@ const { validateResult } = require("../utils/handleValidator");
 
 const validateRegister = [
     check("email").exists().notEmpty().isEmail(),
+    check("name").exists().notEmpty(),
     check("age").exists().notEmpty(),
     check("password").exists().notEmpty().isLength({min:8, max:16}),
     check("cpassword").exists().notEmpty().isLength({min:8, max:16}),

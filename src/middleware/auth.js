@@ -10,7 +10,7 @@ const {
 const chechAuth = async (req, res, next) =>{
     try {
         if(!req.cookies[process.env.COOKIE_NAME]) return handleErrorResponse(res,"Debe iniciar sesión",400)
-        const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].value);
+        const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].token);
         if(decoded.id){
             req.userIdCookie = decoded.id;
             next();

@@ -44,7 +44,12 @@ const updateCategory = async(req,res)=>{
                 name:name
             }
         })
-        return res.status(204).json()
+        if(result) return res.status(204).json()
+
+    return res.status(500).json({
+        isSuccess:false,
+        message:"Error al actualizar categoria"
+    })
     }catch(error){
         console.log(error)
         res.status(500).json(error)

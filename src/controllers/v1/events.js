@@ -12,7 +12,7 @@ const getEvents = async (req,res) =>{
 
         result.forEach( (value, key, map) => {
             value.id=uuidParse.unparse(value.id);
-          });
+        });
         res.status(200).json(result)
     } catch (error) {
         console.log(error)
