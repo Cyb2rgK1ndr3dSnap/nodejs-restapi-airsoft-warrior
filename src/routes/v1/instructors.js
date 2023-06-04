@@ -7,26 +7,33 @@ const {
     createInstructor,
     updateInstructor,
     deleteInstructor,
-    checkProfile
+    checkProfile,
+    getProfile
 } = require("../../controllers/v1/instructors")
 
 const {
     chechAuth
 } = require("../../middleware/auth")
 
+const {
+    validateId,
+    validateCreate,
+    validateUpdate
+} = require("../../validators/instructors")
+
 router
     .get(`/`, getInstructors)
 
-    .get(`/:id`, getInstructor)
+    .get(`/:id`,validateId, getInstructor)
 
-    .post(`/`,chechAuth, createInstructor)
+    .post(`/`,chechAuth, validateCreate, createInstructor)
 
-    .put(`/:id`,chechAuth, updateInstructor)
+    .put(`/:id`, validateId, validateUpdate, chechAuth, updateInstructor)
     
-    .delete(`/:id`,chechAuth, deleteInstructor)
+    .delete(`/:id`, validateId, chechAuth, deleteInstructor)
 
-    .get(`/check`, checkProfile)
+    .get(`/check`, chechAuth, checkProfile)
 
-
+    .get(`/profile`, chechAuth, getProfile)
 
 module.exports = router

@@ -65,7 +65,7 @@ const getInstructor = async (req, res) => {
         console.log(error)
         res.status(500).json({
             isSuccess:false,
-            message:"Error al obtener los instructores, contacté con soporté"
+            message:"Error al obtener el instructor, contacté con soporté"
         })
     }
 }
@@ -203,11 +203,47 @@ const checkProfile = async (req, res) => {
     }
 }
 
+const getProfile = async (req, res) => {
+    try {
+        const userIdCookie = req.userIdCookie
+        const bytes = uuidParse.parse(userIdCookie)
+        const result = await prisma.instructors.findUnique({
+            where:{
+                id_user:Buffer.from(bytes)
+            },include:{
+                user:{
+                    select:{
+                        image_url:true,
+                        name:true,
+                        lastname:true,
+                        age:true,
+                        phonenumber:true,
+                        email:true
+                    }
+                }
+            }
+        })
+        if(result){
+            const uuid = uuidParse.unparse(result.id_user)
+            result.id_user = uuid
+            return res.status(200).json(result)
+        }
+        return res.status(404).json(result)
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            isSuccess:false,
+            message:"Error al obtener Perfil de instructor, contacté con soporté"
+        })
+    }
+}
+
 module.exports = {
     getInstructors,
     getInstructor,
     createInstructor,
     updateInstructor,
     deleteInstructor,
-    checkProfile
+    checkProfile,
+    getProfile
 }

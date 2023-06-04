@@ -1,7 +1,7 @@
 const { prisma } = require('../../config/connection.js');
 
 const getCategories = async(req,res,next) => {
-    const result = await prisma.categories.findMany({})
+    const result = await prisma.categories.findMany()
     //res.redirect("https://youtube.com")
     res.status(200).json(result);
     //res.cookie('Prueba',"TESTING-COOKI",{ expires: new Date(Date.now() + 10000), httpOnly: true })

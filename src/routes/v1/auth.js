@@ -27,14 +27,12 @@ router
 
     .get("/me", getCookie)
 
-    .get(`/logout`,deleteCookie)
-
     .post("/register",multerUpload.single('image'),validateRegister,createUser)
 
     .post(`/login`,validateLogin,loginUser)
     
     .put(`/`,multerUpload.single('image'),validateUpdate,updateUser)
 
-    //.post("/login",authGoogle,googleSignup)
+    .get(`/logout`,deleteCookie)
 
 module.exports = router

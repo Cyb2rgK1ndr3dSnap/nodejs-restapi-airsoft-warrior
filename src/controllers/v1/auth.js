@@ -303,8 +303,8 @@ const updateUser = async (req,res) => {
 
 const getCookie = async (req, res) => {
     try {
-      //const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].value);
-      return res.status(200).json(req.cookies[process.env.COOKIE_NAME].value)
+      const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].token);
+      return res.status(200).json({token:req.cookies[process.env.COOKIE_NAME].token,id:decoded.id})
     } catch (err) {
       console.log(err);
       res.status(500).json(err);
