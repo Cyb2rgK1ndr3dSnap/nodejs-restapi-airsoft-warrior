@@ -8,45 +8,61 @@ const fs = require ('fs');
 const uuidParse = require('uuid-parse');
 
 const getProducts = async (req ,res)=>{
-    const {pagination,tags,order,prices} = req.query;
     //console.log("MULTIPLACIÓN"+((16*(parseInt(pagination)-1))+1))
-    const result = await prisma.products.findMany({
-        skip: (16*(parseInt(pagination)-1)),
-        take: 16,
-        where:{
-            id_category:parseInt(tags)|| undefined
-        },
-        orderBy:[{
-            name: order || undefined,
-            price: prices || undefined
-        }]
-    })
-    result.forEach( (value, key, map) => {
-        value.id=uuidParse.unparse(value.id);
-      });
-    res.json(result);
+    try {
+        const {pagination,tags,order,prices} = req.query;
+        const result = await prisma.products.findMany({
+            skip: (16*(parseInt(pagination)-1)),
+            take: 16,
+            where:{
+                id_category:parseInt(tags)|| undefined
+            },
+            orderBy:[{
+                name: order || undefined,
+                price: prices || undefined
+            }]
+        })
+        result.forEach( (value, key, map) => {
+            value.id=uuidParse.unparse(value.id);
+          });
+        res.status(200).json(result);
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            isSuccess: false,
+            message:'Error al obtener productos, contacté con soporté',
+        })
+    }
 }
 
 const getProduct = async (req ,res)=>{
-    const{id} = req.params;
-    const bytes = uuidParse.parse(id);
-    const result = await prisma.products.findUnique({
-        where: {
-            id:Buffer.from(bytes),
-        },
-        select: {
-            id:true,
-            id_category:true,
-            name:true,
-            image_url:true,
-            description:true,
-            price:true,
-            stock:true
-        },
-    })
-    const uuid = uuidParse.unparse(result.id)
-    result.id = uuid
-    res.json(result);
+    try {
+        const{id} = req.params;
+        const bytes = uuidParse.parse(id);
+        const result = await prisma.products.findUnique({
+            where: {
+                id:Buffer.from(bytes),
+            },
+            select: {
+                id:true,
+                id_category:true,
+                name:true,
+                image_url:true,
+                description:true,
+                price:true,
+                stock:true
+            },
+        })
+        const uuid = uuidParse.unparse(result.id)
+        result.id = uuid
+        res.json(result);
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            isSuccess: false,
+            message:'Error al obtener productos, contacté con soporté',
+        })
+    }
 }
 
 const createProduct = async (req, res)=>{
@@ -78,7 +94,7 @@ const createProduct = async (req, res)=>{
         console.log(error)
         res.status(500).json({
             isSuccess: false,
-            message:'error',
+            message:'Error al crear producto, contacté con soporté técnico',
         })
     }
 }
