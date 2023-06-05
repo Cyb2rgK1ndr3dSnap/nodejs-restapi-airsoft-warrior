@@ -5,7 +5,8 @@ const {
     getMembers,
     getMember,
     createMemberRequest,
-    updateMember
+    updateMember,
+    deleteMember
 } = require("../../controllers/v1/teams_users")
 
 const {
@@ -13,14 +14,14 @@ const {
 } = require("../../middleware/auth")
 
 router
-    .get(`/`,chechAuth,getMembers)
+    .get(`/`,chechAuth, getMembers)
 
     .get(`/:id`)
 
-    .post(`/`,chechAuth,createMemberRequest)
+    .post(`/`, chechAuth, createMemberRequest)
     
-    .put(`/:id`,chechAuth,updateMember)
+    .put(`/:id`, chechAuth, updateMember)
     
-    .delete(`/:id`)
+    .delete(`/:id`, chechAuth, deleteMember)
 
 module.exports = router

@@ -11,7 +11,8 @@ const {
   deleteCookie,
   createUser,
   updateUser,
-  loginUser
+  loginUser,
+  getProfile
 } = require("../../controllers/v1/auth")
 
 const {
@@ -19,6 +20,10 @@ const {
   validateUpdate,
   validateLogin
 } = require("../../validators/auth")
+
+const {
+  chechAuth
+} = require("../../middleware/auth")
 
 router
     .get("/google/url", getGoogleAuthURL)
@@ -31,8 +36,10 @@ router
 
     .post(`/login`,validateLogin,loginUser)
     
-    .put(`/`,multerUpload.single('image'),validateUpdate,updateUser)
+    .put(`/`,multerUpload.single('image'), chechAuth, validateUpdate,updateUser)
 
     .get(`/logout`,deleteCookie)
+
+    .get(`/profile`, chechAuth, getProfile)
 
 module.exports = router

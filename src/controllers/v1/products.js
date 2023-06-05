@@ -8,7 +8,7 @@ const fs = require ('fs');
 const uuidParse = require('uuid-parse');
 
 const getProducts = async (req ,res)=>{
-    const {pagination,tags,order,price} = req.query;
+    const {pagination,tags,order,prices} = req.query;
     //console.log("MULTIPLACIÓN"+((16*(parseInt(pagination)-1))+1))
     const result = await prisma.products.findMany({
         skip: (16*(parseInt(pagination)-1)),
@@ -18,7 +18,7 @@ const getProducts = async (req ,res)=>{
         },
         orderBy:[{
             name: order || undefined,
-            prices: price || undefined
+            price: prices || undefined
         }]
     })
     result.forEach( (value, key, map) => {
@@ -50,7 +50,6 @@ const getProduct = async (req ,res)=>{
 }
 
 const createProduct = async (req, res)=>{
-    //const uploader = async (path) => await uploads(path, 'products');
     try{
         const path = req.file.path;
         const{id_category,name,description,price,stock,active}= req.body;
@@ -78,6 +77,7 @@ const createProduct = async (req, res)=>{
     }catch(error){
         console.log(error)
         res.status(500).json({
+            isSuccess: false,
             message:'error',
         })
     }
@@ -92,10 +92,6 @@ const updateProduct = async (req,res)=>{
     let response = "";
     try{
         if(path){
-            //const { path } = file;
-            image_url = await uploads(path, 'products');
-            //fs.unlinkSync(path)
-
             const product = await prisma.products.findUnique({
                 where:{
                     id:Buffer.from(bytes)
@@ -104,7 +100,10 @@ const updateProduct = async (req,res)=>{
                     image_url:true
                 }
             })
-            
+            image_url = await uploads(path, 'products');
+            if(!image_url){
+                return res.status(500).json({isSuccess:false,message:"Error al cargar imagen"})
+            }
             response = await deletes(product.image_url.id)
             console.log(response)
         }
@@ -126,11 +125,14 @@ const updateProduct = async (req,res)=>{
             })
 
             if(result){
-                //return res.status(201).json({message:"Información actualizada correctamente"})
                 return res.status(204).json()
             }
-            return res.status(500).json({message:"Error al actualizar información"})
         }
+
+        return res.status(500).json({
+            isSucces:false,
+            message:"Error al actualizar información"
+        })
     }catch(error){
         console.log(error)
         res.status(500).json({isSuccess:false,message:"Error al actualizar producto, comuniquese con soporte técnico"})

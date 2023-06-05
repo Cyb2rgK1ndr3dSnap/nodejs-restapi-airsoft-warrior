@@ -107,7 +107,7 @@ const loginUserGoogle = async (req, res) => {
         })
         
         if(user && !user.id_google){
-            return res.status(500).json({isSuccess:false,error:"Email no disponible"})
+            return res.status(500).json({isSuccess:false,message:"Email no disponible"})
         }
 
         if(!user){
@@ -141,7 +141,7 @@ const createUser = async (req,res) =>{
     const {email,name,age,password,cpassword} = req.body
     let image_url;
     if(!(password===cpassword)) 
-        return res.status(500).json({isSuccess:false,error:"Las constraseña no coinciden"})
+        return res.status(500).json({isSuccess:false,message:"Las constraseña no coinciden"})
 
     try {
 
@@ -152,7 +152,7 @@ const createUser = async (req,res) =>{
         })
 
         if(user)
-            return res.status(500).json({isSuccess:false,error:"Email no disponible"})
+            return res.status(500).json({isSuccess:false,message:"Email no disponible"})
 
         if(req.file){
             const path = req.file.path;
@@ -178,12 +178,12 @@ const createUser = async (req,res) =>{
             })
 
             if(!result) 
-                res.status(500).json({isSuccess:false,error:"Error al crear cuenta"})
+                res.status(500).json({isSuccess:false,message:"Error al crear cuenta"})
 
         }else{
             return res.status(500).json({
                 isSuccess: false,
-                error:"Error al cargar imagen"
+                message:"Error al cargar imagen"
             });
         }
 
@@ -223,9 +223,7 @@ const loginUser = async (req,res)=>{
             delete user.password
             const uuid = uuidParse.unparse(user.id)
             user.id = uuid
-            //const token = await jwt.sign(user, process.env.JWT_SECRET);
             const token = await tokenSign(user)
-
             cookieCreate(req,res,process.env.COOKIE_NAME,token,3600000)
             return res.redirect(`${process.env.UI_ROOT_URI}`);
         }
@@ -238,8 +236,11 @@ const loginUser = async (req,res)=>{
 //COMPROBAR LA IMAGEN SI EXISTE Y NO ES LA DE POR DEFECTO Y ELIMINARLA
 const updateUser = async (req,res) => {
     try {
-        let image_url;
-        const {email,name,lastname,age,phonenumber,password,newpassword,cnewpassword} = req.body
+        let image_url = {};
+        let response = ""
+        const {name,lastname,age,phonenumber,password,newpassword,cnewpassword} = req.body
+        const userIdCookie = req.userIdCookie
+        const bytes = uuidParse.parse(userIdCookie)
         if(password){
             if(newpassword != cnewpassword) return res.status(400).json({
                 isSuccess:false,
@@ -247,11 +248,12 @@ const updateUser = async (req,res) => {
             })
             const user = await prisma.users.findUnique({
                 where:{
-                    email:email
+                    id:Buffer.from(bytes)
                 },
                 select:{
                     password:true,
-                    id_google:true
+                    id_google:true,
+                    image_url:true
                 }
             })
 
@@ -266,30 +268,35 @@ const updateUser = async (req,res) => {
                 message:"Contraseña incorrecta"
             })
         }
+
         if(req.file){
             const path = req.file.path;
+
             image_url = await uploads(path,"users");
                 if(!image_url){
-
-                    return res.status(500).json({isSuccess:false,message:"Error al cargar imagen"
-                })
+                    return res.status(500).json({isSuccess:false,message:"Error al cargar imagen"})
+                }
+            if(user.image_url.id != "users/defaultuser_wn4ieo"){
+                response = await deletes()
             }
         }
-        const result = await prisma.users.update({
-            where:{
-                email:email  
-            },
-            data:{
-                name: name || undefined,
-                lastname: lastname || undefined,
-                age: parseInt(age) || undefined,
-                phonenumber: phonenumber || undefined,
-                password: newpassword || undefined,
-                image_url: image_url || undefined
-            }
-        });
 
-        if (result) return res.status(204).json()
+        if(req.file===undefined || response.response === "ok" || response.response === "not found"){
+            const result = await prisma.users.update({
+                where:{
+                    email:email  
+                },
+                data:{
+                    name: name || undefined,
+                    lastname: lastname || undefined,
+                    age: parseInt(age) || undefined,
+                    phonenumber: phonenumber || undefined,
+                    password: newpassword || undefined,
+                    image_url: image_url || undefined
+                }
+            });
+            if (result) return res.status(204).json()
+        }
 
         return res.status(500).json({
             isSuccess:false,
@@ -301,13 +308,42 @@ const updateUser = async (req,res) => {
     }
 }
 
+const getProfile = async (req, res) => {
+    try {
+        const userIdCookie = req.userIdCookie
+        const bytes = uuidParse.parse(userIdCookie)
+        const result = prisma.users.findUnique({
+            where:{
+                id:Buffer.from(bytes)
+            },
+            select:{
+                id:true,
+                image_url:true,
+                id_google:true,
+                name:true,
+                lastname:true,
+                email:true
+            }
+        })
+        if(result) return res.status(200).json(result)
+
+        return res.status(500).json({
+            isSuccess:false,
+            message:"Error al obtener Perfil de usuario, contacté con soporté técnico"
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json(error);
+    }
+}
+
 const getCookie = async (req, res) => {
     try {
       const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].token);
       return res.status(200).json({token:req.cookies[process.env.COOKIE_NAME].token,id:decoded.id})
-    } catch (err) {
-      console.log(err);
-      res.status(500).json(err);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json(error);
     }
 }
 
@@ -315,11 +351,13 @@ const deleteCookie = (req,res) =>{
     try{
         cookieCreate(req,res,process.env.COOKIE_NAME,"",0)
         res.redirect(`${process.env.UI_ROOT_URI}`);
-    }catch (err){
-        console.log(err)
-        res.status(500).json(err)
+    }catch (error){
+        console.log(error)
+        res.status(500).json(error)
     }
 }
+
+
 
 module.exports = {
     getGoogleAuthURL,
@@ -328,5 +366,6 @@ module.exports = {
     deleteCookie,
     createUser,
     updateUser,
-    loginUser
+    loginUser,
+    getProfile
 }

@@ -187,10 +187,51 @@ const deleteTeam = async (req,res) => {
         res.status(500).json({isSuccess:false,error:"Error al eliminar equipo, contacté a soporte"});
     }
 }
+
+const getProfileTeam = async (req, res) =>{
+    try {
+        const userIdCookie = req.userIdCookie
+        const bytes = uuidParse.parse(userIdCookie)
+        console.log(bytes)
+        const result = await prisma.teams.findFirst({
+            where:{
+                teams_users:{
+                    some:{
+                        id_user:Buffer.from(bytes)
+                    }
+                }
+            },
+            select:{
+                name:true,
+                teams_users:{
+                    select:{
+                        id_user:true,
+                            team:{
+                                select:{
+                                    name:true
+                                }
+                            }
+                    },
+                }
+            }
+        })
+        
+        if(result) return res.status(200).json(result)
+
+        return res.status(404).json({
+            //ARREGLAR ESTO ##INVESTIGAR QUE RESPONSE SE DEBERÍA DAR EN STATUS 404
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({isSuccess:false,error:"Error al obtener Perfil de equipo, contacté a soporte"});
+    }
+}
+
 module.exports = {
     getTeams,
     getTeam,
     createTeam,
     updateTeam,
     deleteTeam,
+    getProfileTeam
 }

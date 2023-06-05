@@ -46,7 +46,7 @@ const updateCategory = async(req,res)=>{
         })
         if(result) return res.status(204).json()
 
-    return res.status(500).json({
+    return res.status(404).json({
         isSuccess:false,
         message:"Error al actualizar categoria"
     })
@@ -66,7 +66,7 @@ const deleteCategory = async(req,res)=>{
         })
         if(result) return res.status(204).json()
 
-        return res.status(500).json({
+        return res.status(404).json({
             isSuccess:false,
             message:"Error al eliminar categoria, intentelo de nuevo o contacté con soporté"
         })

@@ -45,13 +45,13 @@ model teams {
 }
 
 model teams_users {
-  id       Int      @id @default(autoincrement())
   team     teams    @relation(fields: [id_team], references: [id])
   id_team  Bytes    @db.Binary(16)
   user     users    @relation(fields: [id_user], references: [id])
   id_user  Bytes    @db.Binary(16)
   accepted Boolean?
 
+  @@id([id_team, id_user])
   @@index([id_team], map: "fk_teams_users_1")
   @@index([id_user], map: "fk_teams_users_2")
 }

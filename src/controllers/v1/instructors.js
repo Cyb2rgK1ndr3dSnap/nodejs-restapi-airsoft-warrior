@@ -213,6 +213,7 @@ const getProfile = async (req, res) => {
             },include:{
                 user:{
                     select:{
+                        id:true,
                         image_url:true,
                         name:true,
                         lastname:true,

@@ -2,8 +2,6 @@ const {prisma} = require("../../config/connection.js")
 const uuidParse = require('uuid-parse');
 
 const getMembers = async (req,res) =>{
-    const userIdCookie = req.userIdCookie
-    
     const bytes = uuidParse.parse(id_team)
     try {
         const result = await prisma.teams_users.findMany({
@@ -59,7 +57,7 @@ const getMember = async (req,res) =>{
         res.status(500).json({isSuccess:false,message:"Error, comuniquese con soporte técnico"})
     }
 }
-//SEGUIR EDITANDO ESTO
+
 const createMemberRequest = async (req,res) =>{
     const {id_team} = req.body
     const userIdCookie = req.userIdCookie
@@ -116,9 +114,16 @@ const createMemberRequest = async (req,res) =>{
             message:"Solicitud enviada exitosamente"
         })
         
+        return res.status(500).json({
+            isSuccess:false,
+            message:"Error al crear solicitud, contacté con soporté técnico"
+        })
     } catch (error) {
         console.log(error)
-        res.status(500).json({isSuccess:false,message:"Error, comuniquese con soporte técnico"})
+        res.status(500).json({
+            isSuccess:false,
+            message:"Error, comuniquese con soporte técnico"
+        })
     }
 }
 
@@ -126,33 +131,43 @@ const updateMember = async (req,res) =>{
     try {
         const userIdCookie = req.userIdCookie
         const {id} = req.params
+        const bytes = uuidParse.parse(id)
+        const bytesCreated = uuidParse.parse(userIdCookie)
         const action = req.query.action === "1" ? true : false
-        const checkRequest = await prisma.teams_users.findUnique({
+        const checkTeamOwner = await prisma.teams_users.findFirst({
             where:{
-                id:parseInt(id)
+                id_user:Buffer.from(bytes),
+                team:{
+                    created_by:Buffer.from(bytesCreated)
+                },NOT:{
+                    id_user:Buffer.from(bytesCreated)
+                }
             },
             include:{
                 team:{
                     select:{
-                        created_by:true
+                        id:true
                     }
                 }
             }
         })
 
-        if(checkRequest)
-            if(checkRequest.accepted != null)
+        if(!checkTeamOwner) return res.status(404).json({
+            isSuccess:false,
+            message:"No existe está solicitud, recargé la página"
+        })
+
+        if(checkTeamOwner)
+            if(checkTeamOwner.accepted != null)
                 return res.status(204).json({})
 
-        const bytesCreated = uuidParse.parse(userIdCookie)
-        let buffer =Buffer.from(checkRequest.team.created_by)
-        let buffer2 = Buffer.from(bytesCreated)
-        //console.log(Buffer.compare(buffer, buffer2))
-        if(Buffer.compare(buffer, buffer2) === 0){
             const result = await prisma.$transaction(async prisma =>{ 
                 const member = await prisma.teams_users.update({
                     where:{
-                        id:parseInt(id)
+                        id_team_id_user:{
+                            id_user:Buffer.from(bytes),
+                            id_team:Buffer.from(checkTeamOwner.team.id)
+                        }
                     },
                     data:{
                         accepted:action
@@ -163,7 +178,7 @@ const updateMember = async (req,res) =>{
                     await prisma.teams_users.deleteMany({
                         where:{
                             AND:{
-                                    id_user:Buffer.from(checkRequest.id_user),
+                                    id_user:Buffer.from(checkTeamOwner.id_user),
                                 },
                                 OR:[
                                     {
@@ -180,18 +195,80 @@ const updateMember = async (req,res) =>{
                         }
                     })
                 }
-
                 return member
             })      
             if(result) return res.status(204).json()
-        }
+
         return res.status(500).json({
             isSuccess:false,
-            message:"Error al aceptar miembro intentelo nuevamen o contacte con soporté técnico"
+            message:"Error al procesar petición intentelo nuevamente o contacte con soporté técnico"
         })
     } catch (error) {
         console.log(error)
-        res.status(500).json({isSuccess:false,message:"Error, comuniquese con soporte técnico"})
+        res.status(500).json({
+            isSuccess:false,
+            message:"Error, comuniquese con soporte técnico"
+        })
+    }
+}
+
+const deleteMember = async (req, res) =>{
+    try {
+        const userIdCookie = req.userIdCookie
+        const {id} = req.params
+        const bytes = uuidParse.parse(id)
+        const bytesCreated = uuidParse.parse(userIdCookie)
+        const checkTeamOwner = await prisma.teams_users.findFirst({
+            where:{
+                id_user:Buffer.from(bytes),
+                team:{
+                    created_by:Buffer.from(bytesCreated)
+                },NOT:{
+                    id_user:Buffer.from(bytesCreated)
+                }
+            },
+            include:{
+                team:{
+                    select:{
+                        id:true,
+                    }
+                }
+            }
+        })
+
+        if(!checkTeamOwner) return res.status(404).json({
+            isSuccess:false,
+            message:"No existe esté usuario en el equipo, recargé la página"
+        })
+
+            const result = await prisma.teams_users.delete({
+                where:{
+                    id_team_id_user:{
+                        id_user:Buffer.from(checkTeamOwner.id_user),
+                        id_team:Buffer.from(checkTeamOwner.team.id)
+                    }
+                }
+            })
+            if(result) return res.status(204).json()
+
+        return res.status(500).json({
+            isSuccess:false,
+            message:"Error al eliminar miembro intentelo nuevamente o contacte con soporté técnico"
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            isSuccess:false,
+            message:"Error, comuniquese con soporte técnico"
+        })
+    }
+}
+
+const getProfileT_U = async (req, res) => {
+    try {
+        
+    } catch (error) {
+        
     }
 }
 
@@ -199,5 +276,6 @@ module.exports = {
     getMembers,
     getMember,
     createMemberRequest,
-    updateMember
+    updateMember,
+    deleteMember
 }
