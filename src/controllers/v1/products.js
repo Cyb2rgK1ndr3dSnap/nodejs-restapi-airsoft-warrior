@@ -10,21 +10,24 @@ const uuidParse = require('uuid-parse');
 const getProducts = async (req ,res)=>{
     //console.log("MULTIPLACIÓN"+((16*(parseInt(pagination)-1))+1))
     try {
-        const {pagination,tags,order,prices} = req.query;
+        const {p,tags} = req.query;
+        let orderBySet = {};
+        for(const [key, value] of Object.entries(req.query)) {
+            if((key == "price" || key == "name") && value){
+                if( Object.keys(orderBySet).length == 0) orderBySet[`${key}`]=value;
+            }
+        } 
         const result = await prisma.products.findMany({
-            skip: (16*(parseInt(pagination)-1)),
+            skip: (16*(parseInt(p)-1)),
             take: 16,
             where:{
                 id_category:parseInt(tags)|| undefined
             },
-            orderBy:[{
-                name: order || undefined,
-                price: prices || undefined
-            }]
+            orderBy:orderBySet
         })
         result.forEach( (value, key, map) => {
             value.id=uuidParse.unparse(value.id);
-          });
+        });
         res.status(200).json(result);
     } catch (error) {
         console.log(error)
