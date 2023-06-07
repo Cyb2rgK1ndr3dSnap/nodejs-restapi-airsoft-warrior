@@ -4,11 +4,12 @@ const cors = require("cors")
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const {doubleCsrf} = require("csrf-csrf")
-const {
+///##CONFIGURAR EL TOKEN DE doubleCsrf para poder habilitarlo
+/*const {
   generateToken,
   doubleCsrfProtection
 } = doubleCsrf("doubleCsrfOptions")
-require("dotenv/config")
+require("dotenv/config")*/
 
 const PORT = process.env.PORT;
 
@@ -18,7 +19,7 @@ const app = express();
 app.use(helmet.crossOriginResourcePolicy({ policy : 'cross-origin'}))
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(doubleCsrfProtection)
+//app.use(doubleCsrfProtection)
 app.use(cookieParser());
 
 app.use(morgan("dev"));
