@@ -229,7 +229,7 @@ const loginUser = async (req,res)=>{
             /*return res.writeHead(301, {
                 Location: `${process.env.UI_ROOT_URI}`
               }).end();*/
-            return res.status(301).json({isSucces:true,url:`${process.env.UI_ROOT_URI}`});
+            return res.status(301).json({isSuccess:true,url:`${process.env.UI_ROOT_URI}`});
         }
         return res.status(500).json({isSuccess:false,message:"Email o contraseña incorrectos"})
     } catch (error) {
