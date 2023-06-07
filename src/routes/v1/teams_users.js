@@ -6,7 +6,8 @@ const {
     getMember,
     createMemberRequest,
     updateMember,
-    deleteMember
+    deleteMember,
+    getProfileT_U
 } = require("../../controllers/v1/teams_users")
 
 const {
@@ -23,5 +24,7 @@ router
     .put(`/:id`, chechAuth, updateMember)
     
     .delete(`/:id`, chechAuth, deleteMember)
+
+    .get(`/profile`, chechAuth, getProfileT_U)
 
 module.exports = router

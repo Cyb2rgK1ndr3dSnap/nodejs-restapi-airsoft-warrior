@@ -9,7 +9,7 @@ const PORT = process.env.PORT;
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolic: false}));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 

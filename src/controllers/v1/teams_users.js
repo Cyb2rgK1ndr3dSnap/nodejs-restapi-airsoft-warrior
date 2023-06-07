@@ -266,9 +266,67 @@ const deleteMember = async (req, res) =>{
 
 const getProfileT_U = async (req, res) => {
     try {
+        const userIdCookie = req.userIdCookie
+        const bytes = uuidParse.parse(userIdCookie)
+        const result = await prisma.teams_users.findMany({
+            where:{
+                team:{
+                    teams_users:{
+                        some:{
+                            id_user:{
+                                equals:Buffer.from(bytes)
+                            }
+                        }
+                    }
+                },
+                AND:[
+                    {accepted:{
+                        equals:true
+                    }}
+                ]
+            },
+            select:{
+                accepted:true,
+                                user:{
+                                    select:{
+                                        name:true,
+                                        image_url:true,
+                                        email:true
+                                    }
+                                },
+                team:{
+                    select:{
+                        id:true,
+                        name:true,
+                        image_url:true,
+                        description:true,
+                        create:{
+                            select:{
+                                name:true,
+                                image_url:true
+                            }
+                        },
+                    }
+                }
+            }
+        })
         
+        if(result){
+            const uuid = uuidParse.unparse(result[0].team.id)
+            result[0].team.id = uuid
+            return res.status(200).json(result)
+        }
+
+        return res.status(404).json({
+            isSuccess:false,
+            message:"Not found, contacté con soporté"
+        })
     } catch (error) {
-        
+        console.log(error)
+        res.status(500).json({
+            isSuccess:false,
+            message:"Error, comuniquese con soporte técnico"
+        })
     }
 }
 
@@ -277,5 +335,6 @@ module.exports = {
     getMember,
     createMemberRequest,
     updateMember,
-    deleteMember
+    deleteMember,
+    getProfileT_U
 }
