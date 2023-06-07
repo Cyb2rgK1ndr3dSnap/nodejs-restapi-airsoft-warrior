@@ -225,7 +225,7 @@ const loginUser = async (req,res)=>{
             user.id = uuid
             const token = await tokenSign(user)
             cookieCreate(req,res,process.env.COOKIE_NAME,token,3600000)
-            return res.status(301).location('/')
+            return res.status(301).location(`${process.env.UI_ROOT_URI}`)
             return res.writeHead(301, {
                 Location: `${process.env.UI_ROOT_URI}`
               }).end();
