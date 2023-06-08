@@ -8,15 +8,16 @@ const {doubleCsrf} = require("csrf-csrf")
 /*const {
   generateToken,
   doubleCsrfProtection
-} = doubleCsrf("doubleCsrfOptions")
-require("dotenv/config")*/
+} = doubleCsrf("doubleCsrfOptions")*/
+require("dotenv/config")
 
 const PORT = process.env.PORT;
 
 const app = express();
 
 //app.use(helmet({ crossOriginResourcePolic: false}));
-app.use(helmet.crossOriginResourcePolicy({ policy : 'cross-origin'}))
+//app.use(helmet.crossOriginResourcePolicy({ policy : 'cross-origin'}))
+app.use(helmet())
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 //app.use(doubleCsrfProtection)
