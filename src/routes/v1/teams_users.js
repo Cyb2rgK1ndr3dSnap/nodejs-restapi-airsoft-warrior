@@ -17,7 +17,7 @@ const {
 router
     .get(`/`,chechAuth, getMembers)
 
-    .get(`/:id`)
+    .get(`/:id`,getMember)
 
     .post(`/`, chechAuth, createMemberRequest)
     

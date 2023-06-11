@@ -8,13 +8,21 @@ const {
 
 const getTeams = async (req,res) =>{
     try {
+        const {p,s} = req.query;
         const result = await prisma.teams.findMany({
+            skip: (16*(parseInt(p)-1)),
+            take: 16,
+            where:{
+                name:{
+                    contains: s || undefined
+                }
+            },
             select:{
                 id:true,
                 image_url:true,
                 name:true,
                 description:true,             
-            }            
+            }
         })
         result.forEach( (value, key, map) => {
             value.id=uuidParse.unparse(value.id);
@@ -49,6 +57,7 @@ const getTeam = async (req,res) => {
                 }
             }    
         })
+        result.id = uuidParse.unparse(result.id)
         res.status(200).json(result);
     } catch (error) {
         console.log(error);
@@ -62,17 +71,6 @@ const createTeam = async (req,res) => {
     const bytesUser = uuidParse.parse(userIdCookie)
     let image_url;
     try {
-        const checkName = await prisma.teams.findUnique({
-            where:{
-                name:name
-            }
-        })
-
-        if(checkName) return res.status(400).json({
-            isSuccess:false,
-            message:"No puedo realizar está acción ya existé un equipo con ese nombre"
-        })
-
         const checkExist = await prisma.teams_users.findFirst({
             where:{
                     id_user:Buffer.from(bytesUser),
@@ -85,6 +83,17 @@ const createTeam = async (req,res) => {
                 isSuccess:false,
                 message:"No puedo realizar está acción, ya pertenece a un equipo"
             })
+
+        const checkName = await prisma.teams.findUnique({
+            where:{
+                name:name
+            }
+        })
+
+        if(checkName) return res.status(400).json({
+            isSuccess:false,
+            message:"No puedo realizar está acción ya existé un equipo con ese nombre"
+        })
 
         if(req.file){
             const path = req.file.path;
@@ -203,32 +212,25 @@ const getProfileTeam = async (req, res) =>{
                     id_team:true
                 }
             })
+            
+            if(!id) return null
 
-            const team = await prisma.teams.findFirst({
+            const team = await prisma.teams.findUnique({
                 where:{
-                    id:{
-                        equals:Buffer.from(id.id_team)
-                    }
+                    id:Buffer.from(id.id_team),
                 },
                 select:{
                     id:true,
                     image_url:true,
                     name:true,
                     description:true,
-                    teams_users:{
-                        select:{
-                            accepted:true
-                        }
-                    },
-                    _count:{}
                 }
             })
             return {team};
         })
         
         if(result){
-            const uuid = uuidParse.unparse(result.team.id)
-            result.team.id = uuid
+            result.team.id = uuidParse.unparse(result.team.id)
             return res.status(200).json(result.team)
         }
 

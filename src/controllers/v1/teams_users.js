@@ -2,7 +2,7 @@ const {prisma} = require("../../config/connection.js")
 const uuidParse = require('uuid-parse');
 
 const getMembers = async (req,res) =>{
-    const bytes = uuidParse.parse(id_team)
+    //const bytes = uuidParse.parse(id_team)
     try {
         const result = await prisma.teams_users.findMany({
             where:{
@@ -37,12 +37,15 @@ const getMembers = async (req,res) =>{
 }
 //MODIFICAR EN OTRO MOMENTO
 const getMember = async (req,res) =>{
-    const id_team = req.body
-    const bytes = uuidParse.parse(id_team)
+    const {id} = req.params
+    const bytes = uuidParse.parse(id)
     try {
         const result = await prisma.teams_users.findMany({
             where:{
-                id_team:Buffer.from(bytes)
+                id_user:Buffer.from(bytes),
+            },select:{
+                user:true,
+                team:true
             }
         })
     
@@ -50,7 +53,7 @@ const getMember = async (req,res) =>{
     
         return res.status(500).json({
             isSuccess:false,
-            message:"Error al obtener miembros de equipo, intentelo de nuevo o contacté con soporté"
+            message:"Error al obtener miembro de equipo, intentelo de nuevo o contacté con soporté"
         })
     } catch (error) {
         console.log(error)
@@ -266,55 +269,56 @@ const deleteMember = async (req, res) =>{
 
 const getProfileT_U = async (req, res) => {
     try {
-        const userIdCookie = req.userIdCookie
-        const bytes = uuidParse.parse(userIdCookie)
-        const result = await prisma.teams_users.findMany({
-            where:{
-                team:{
-                    teams_users:{
-                        some:{
-                            id_user:{
-                                equals:Buffer.from(bytes)
-                            }
+        const userIdCookie = req.userIdCookie;
+        const bytes = uuidParse.parse(userIdCookie);
+        
+        const result = await prisma.$transaction(async prisma =>{
+            const team = await prisma.teams_users.findFirst({
+                where:{
+                    id_user:{
+                        equals:Buffer.from(bytes)
+                    }
+                },select:{
+                    team:{
+                        select:{
+                            id:true,
+                            name:true,
+                            image_url:true,
+                            description:true,
+                            created_by:true
                         }
                     }
-                },
-                AND:[
-                    {accepted:{
-                        equals:true
-                    }}
-                ]
-            },
-            select:{
-                accepted:true,
-                                user:{
-                                    select:{
-                                        name:true,
-                                        image_url:true,
-                                        email:true
-                                    }
-                                },
-                team:{
-                    select:{
-                        id:true,
-                        name:true,
-                        image_url:true,
-                        description:true,
-                        create:{
-                            select:{
-                                name:true,
-                                image_url:true
-                            }
-                        },
-                    }
                 }
-            }
+            })
+            
+            if(!team) return null
+
+            const members = await prisma.teams_users.findMany({
+                where:{
+                    id_team:Buffer.from(team.team.id),
+                    accepted:true,
+                },
+                select:{
+                    user:{
+                        select:{
+                            id:true,
+                            name:true,
+                            image_url:true,
+                            email:true
+                        }
+                    },
+                }
+            })
+            return {team,members}
         })
-        
+
+        result.members.forEach( (value, key, map) => {
+            value.user.id=uuidParse.unparse(value.user.id);
+        });
+
         if(result){
-            const uuid = uuidParse.unparse(result[0].team.id)
-            result[0].team.id = uuid
-            return res.status(200).json(result)
+            result.team.team.id = uuidParse.unparse(result.team.team.id)
+            return res.status(200).json({result})
         }
 
         return res.status(404).json({

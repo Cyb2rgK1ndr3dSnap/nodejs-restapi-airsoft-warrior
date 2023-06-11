@@ -3,32 +3,36 @@ const {
     uploads,
     deletes
 } = require("../../utils/handleCloudinary.js");
-
-const fs = require ('fs');
+//const fs = require ('fs');
 const uuidParse = require('uuid-parse');
 
 const getProducts = async (req ,res)=>{
-    //console.log("MULTIPLACIÓN"+((16*(parseInt(pagination)-1))+1))
     try {
-        const {p,tags} = req.query;
+        const {p,tags,s} = req.query;
         let orderBySet = {};
         for(const [key, value] of Object.entries(req.query)) {
             if((key == "price" || key == "name") && value){
-                if( Object.keys(orderBySet).length == 0) orderBySet[`${key}`]=value;
+                if(Object.keys(orderBySet).length == 0) orderBySet[`${key}`]=value;
             }
         } 
         const result = await prisma.products.findMany({
             skip: (16*(parseInt(p)-1)),
             take: 16,
             where:{
-                id_category:parseInt(tags)|| undefined
+                id_category:parseInt(tags)|| undefined,
+                name: {
+                    contains: s || undefined
+                }
             },
             orderBy:orderBySet
         })
         result.forEach( (value, key, map) => {
             value.id=uuidParse.unparse(value.id);
         });
-        res.status(200).json(result);
+
+        if(result) return res.status(200).json(result);
+
+        return res.status(404).json()
     } catch (error) {
         console.log(error)
         res.status(500).json({
@@ -70,11 +74,14 @@ const getProduct = async (req ,res)=>{
 
 const createProduct = async (req, res)=>{
     try{
+        if(!req.file) return res.status(400).json({
+            isSuccess:false,
+            message:"La imagen del producto es requerida"
+        })
         const path = req.file.path;
         const{id_category,name,description,price,stock,active}= req.body;
         const image_url = await uploads(path, 'products');
-            //const { path } = file;
-            //fs.unlinkSync(path)
+
             if(image_url.url){
                 const result = await prisma.products.create({
                     data: {
@@ -103,14 +110,14 @@ const createProduct = async (req, res)=>{
 }
 
 const updateProduct = async (req,res)=>{
-    const path = req.file.path;
     const{id}= req.params;
     const{id_category,name,description,price,stock,active} = req.body;
     const bytes = uuidParse.parse(id);
     let image_url= {};
     let response = "";
     try{
-        if(path){
+        if(req.file){
+            const path = req.file.path;
             const product = await prisma.products.findUnique({
                 where:{
                     id:Buffer.from(bytes)
@@ -124,10 +131,9 @@ const updateProduct = async (req,res)=>{
                 return res.status(500).json({isSuccess:false,message:"Error al cargar imagen"})
             }
             response = await deletes(product.image_url.id)
-            console.log(response)
         }
 
-        if(path===undefined || response.response === "ok" || response.response === "not found"){
+        if(req.file===undefined || response.response === "ok" || response.response === "not found"){
             const result = await prisma.products.update({
                 where : {
                     id:Buffer.from(bytes)
@@ -181,7 +187,7 @@ const deleteProduct = async (req,res)=>{
     
     res.status(500).json({
         isSuccess:false,
-        message:"Error al eliminar imagen"
+        message:"Error al eliminar producto"
     })
 }
 

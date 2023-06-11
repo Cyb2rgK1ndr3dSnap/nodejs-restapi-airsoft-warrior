@@ -13,10 +13,6 @@ const validatePagination = (req, res, next) => {
     next()
 }
 
-const validateCreate = [
-    
-]
-
 const validateId = [
     check("id").exists().notEmpty().isUUID(),
     (req, res, next) => {
@@ -24,7 +20,33 @@ const validateId = [
     },
 ]
 
+const validateCreate = [
+    check("image").exists().notEmpty(),
+    check("id_category").exists().notEmpty(),
+    check("name").exists().notEmpty(),
+    check("description").exists().notEmpty(),
+    check("price").exists().notEmpty(),
+    check("stock").exists().notEmpty(),
+    check("active").exists().notEmpty()
+]
+
+const validateUpdate = [
+    check("id").exists().notEmpty(),
+    check("image").exists().notEmpty().optional(),
+    check("id_category").exists().notEmpty().optional(),
+    check("name").exists().notEmpty().optional(),
+    check("description").exists().notEmpty().optional(),
+    check("price").exists().notEmpty().optional(),
+    check("stock").exists().notEmpty().optional(),
+    check("active").exists().notEmpty().optional(),
+    (req, res, next) => {
+        validateResult(req, res, next);
+    },
+]
+
 module.exports = {
     validatePagination,
-    validateId
+    validateId,
+    validateCreate,
+    validateUpdate
 }

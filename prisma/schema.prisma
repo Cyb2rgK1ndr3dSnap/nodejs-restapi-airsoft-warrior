@@ -12,7 +12,7 @@ model users {
   id                   Bytes                  @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
   id_google            String?                @db.VarChar(100)
   image_url            Json
-  rol                  users_rol              @default(user)
+  rol                  users_rol              @default(User)
   name                 String                 @db.VarChar(30)
   lastname             String?                @db.VarChar(30)
   age                  Int?
@@ -118,6 +118,7 @@ model products {
 
 model events {
   id              Bytes             @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  name            String            @db.VarChar(255)
   place           places            @relation(fields: [id_place], references: [id])
   id_place        Int
   description     String            @db.VarChar(255)
@@ -136,7 +137,7 @@ model events_opinions {
   user         users  @relation(fields: [id_user], references: [id])
   id_user      Bytes  @db.Binary(16)
   opinion      String @db.VarChar(255)
-  calification Int
+  calification allowed_calification
 
   @@index([id_event], map: "fk_events_opinions_1")
   @@index([id_user], map: "fk_events_opinions_2")
@@ -149,7 +150,7 @@ model instructors_opinions {
   user         users       @relation(fields: [id_user], references: [id])
   id_user      Bytes       @db.Binary(16)
   opinion      String      @db.VarChar(150)
-  calification Int
+  calification allowed_calification
 
   @@index([id_instrutor], map: "fk_instructors_opinions_1")
   @@index([id_user], map: "fk_instructors_opinions_2")
@@ -179,15 +180,23 @@ model users_events {
 }
 
 enum users_rol {
-  user
-  tecnico
-  administrador
+  User
+  Tecnico
+  Administrador
 }
 
 enum places_ambiente {
   Boscoso
   Urbano
-  llano
+  Llano
   Cerrado
   Experimental
+}
+
+enum allowed_calification {
+  R1 // Excelente
+  R2 // Bueno
+  R3 // Regular
+  R4 // Malo
+  R5 // Horrible
 }

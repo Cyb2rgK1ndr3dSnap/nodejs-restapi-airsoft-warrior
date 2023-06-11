@@ -313,7 +313,7 @@ const getProfile = async (req, res) => {
     try {
         const userIdCookie = req.userIdCookie
         const bytes = uuidParse.parse(userIdCookie)
-        const result = prisma.users.findUnique({
+        const result = await prisma.users.findUnique({
             where:{
                 id:Buffer.from(bytes)
             },
@@ -326,6 +326,8 @@ const getProfile = async (req, res) => {
                 email:true
             }
         })
+        result.id = uuidParse.unparse(result.id)
+
         if(result) return res.status(200).json(result)
 
         return res.status(500).json({
@@ -340,8 +342,8 @@ const getProfile = async (req, res) => {
 
 const getCookie = async (req, res) => {
     try {
-      const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].token);
-      return res.status(200).json({token:req.cookies[process.env.COOKIE_NAME].token,id:decoded.id})
+      //const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].token);
+      return res.status(200).json({token:req.cookies[process.env.COOKIE_NAME].token})
     } catch (error) {
       console.log(error);
       res.status(500).json(error);

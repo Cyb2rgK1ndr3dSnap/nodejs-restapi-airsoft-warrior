@@ -11,7 +11,8 @@ const {
 
 const {
     validatePagination,
-    validateId
+    validateId,
+    validateCreate
 } = require("../../validators/products")
 
 router
@@ -19,7 +20,7 @@ router
 
     .get(`/:id`,validateId,getProduct)
     
-    .post(`/`,multerUpload.single('image'),createProduct)
+    .post(`/`,validateCreate,multerUpload.single('image'),createProduct)
 
     .put(`/:id`,multerUpload.single('image'),validateId,updateProduct)
 

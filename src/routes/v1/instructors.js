@@ -16,13 +16,14 @@ const {
 } = require("../../middleware/auth")
 
 const {
+    validatePagination,
     validateId,
     validateCreate,
     validateUpdate
 } = require("../../validators/instructors")
 
 router
-    .get(`/`, getInstructors)
+    .get(`/`, validatePagination, getInstructors)
 
     .get(`/:id`,validateId, getInstructor)
 

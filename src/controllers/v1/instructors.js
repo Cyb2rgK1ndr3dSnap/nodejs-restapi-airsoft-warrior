@@ -3,8 +3,18 @@ const uuidParse = require('uuid-parse');
 
 const getInstructors = async (req, res) => {
     try {
+        const {p,s} = req.query;
         const result = await prisma.instructors.findMany({
-            include:{
+            skip: (16*(parseInt(p)-1)),
+            take: 16,
+            where:{
+                user:{
+                    name:{
+                        contains: s || undefined
+                    }
+                }
+            },
+            select:{
                 user:{
                     select:{
                         image_url:true,
@@ -18,13 +28,14 @@ const getInstructors = async (req, res) => {
             }
         })
 
-        if(result){
+        if(!result){
             result.forEach( (value, key, map) => {
                 value.id_user=uuidParse.unparse(value.id_user);
             });
             return res.status(200).json(result)
         }
-        return res.status(204).json(result)
+
+        return res.status(404).json(result)
 
     } catch (error) {
         console.log(error)
