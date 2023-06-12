@@ -26,7 +26,6 @@ const getEvents = async (req,res) =>{
             });
             res.status(200).json(result)
         }
-        
         res.status(404).json()
     } catch (error) {
         console.log(error)
@@ -54,8 +53,11 @@ const getEvent = async (req,res) =>{
                 place:true
             }
         })
-        result.id = uuidParse.unparse(result.id)
-        res.status(200).json(result)
+        if(result){
+            result.id = uuidParse.unparse(result.id)
+            res.status(200).json(result)
+        }
+        res.status(404).json()
     } catch (error) {
         console.log(error)
         res.status(500).json({

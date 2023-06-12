@@ -28,7 +28,7 @@ const getInstructors = async (req, res) => {
             }
         })
 
-        if(!result){
+        if(result.length > 0){
             result.forEach( (value, key, map) => {
                 value.id_user=uuidParse.unparse(value.id_user);
             });
@@ -67,8 +67,7 @@ const getInstructor = async (req, res) => {
             }
         })
         if(result){
-            const uuid = uuidParse.unparse(result.id_user)
-            result.id_user = uuid
+            result.id_user = uuidParse.unparse(result.id_user)
             return res.status(200).json(result)
         }
         return res.status(404).json(result)

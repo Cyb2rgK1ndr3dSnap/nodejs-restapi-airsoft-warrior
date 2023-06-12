@@ -24,10 +24,14 @@ const getTeams = async (req,res) =>{
                 description:true,             
             }
         })
-        result.forEach( (value, key, map) => {
-            value.id=uuidParse.unparse(value.id);
-        });
-        res.status(200).json(result)
+
+        if(result.length > 0){
+            result.forEach( (value, key, map) => {
+                value.id=uuidParse.unparse(value.id);
+            });
+            res.status(200).json(result)
+        }
+        res.status(404).json()
     } catch (error) {
         console.log(error)
         res.status(500).json({isSuccess:false,error:"Error al obtener los equipos, contacté a soporte"})
@@ -57,8 +61,12 @@ const getTeam = async (req,res) => {
                 }
             }    
         })
-        result.id = uuidParse.unparse(result.id)
-        res.status(200).json(result);
+        
+        if(result){
+            result.id = uuidParse.unparse(result.id)
+            res.status(200).json(result);
+        }
+        res.status(404).json()
     } catch (error) {
         console.log(error);
         res.status(500).json({isSuccess:false,error:"Error al obtener el equipo, contacté a soporte"});
