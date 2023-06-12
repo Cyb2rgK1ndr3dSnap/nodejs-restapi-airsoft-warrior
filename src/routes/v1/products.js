@@ -1,6 +1,8 @@
 const { Router } = require ("express");
-const multerUpload = require("../../utils/handleStorage")
 const router = Router();
+
+const multerUpload = require("../../utils/handleStorage")
+
 const {
     getProduct,
     getProducts,

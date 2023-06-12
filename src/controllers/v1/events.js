@@ -13,7 +13,7 @@ const getEvents = async (req,res) =>{
                     contains: s || undefined
                 }
             },
-            include:{
+            select:{
                 place:true,
             }
         });

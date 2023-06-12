@@ -1,8 +1,15 @@
 const { check } = require("express-validator");
 const { validateResult } = require("../utils/handleValidator");
 
-const validateName = [
-    check("name").exists().notEmpty().custom((value, {req}) => (value === req.body.name)),
+const validateCreate = [
+    check("name").exists().notEmpty(),
+    (req, res, next) => {
+        validateResult(req, res, next);
+    },
+]
+
+const validateUpdate = [
+    check("name").exists().notEmpty().optional(),
     (req, res, next) => {
         validateResult(req, res, next);
     },
@@ -16,6 +23,7 @@ const validateId = [
 ]
 
 module.exports = {
-    validateName,
+    validateCreate,
+    validateUpdate,
     validateId
 }

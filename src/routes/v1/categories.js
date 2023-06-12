@@ -9,7 +9,8 @@ const {
 } = require("../../controllers/v1/categories")
 
 const {
-    validateName,
+    validateCreate,
+    validateUpdate,
     validateId
 } = require("../../validators/categories")
 
@@ -18,9 +19,9 @@ router
 
     .get(`/:id`,validateId,getCategorie)
 
-    .post(`/`,validateName,createCategory)
+    .post(`/`, validateCreate, createCategory)
 
-    .put(`/:id`,validateId,validateName,updateCategory)
+    .put(`/:id`,validateId,validateUpdate,updateCategory)
 
     .delete(`:id`,validateId,deleteCategory)
 

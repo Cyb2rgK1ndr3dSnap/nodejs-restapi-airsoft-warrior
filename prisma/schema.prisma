@@ -20,7 +20,7 @@ model users {
   email                String                 @unique(map: "email") @db.VarChar(50)
   password             String?                @db.VarChar(150)
   created_at           DateTime               @default(now()) @db.Timestamp(0)
-  updated_at           DateTime               @default(now()) @db.Timestamp(0) @updatedAt
+  updated_at           DateTime               @default(now()) @updatedAt @db.Timestamp(0)
   teams_users          teams_users[]
   instructors          instructors[]
   orders               orders[]
@@ -38,7 +38,7 @@ model teams {
   create      users         @relation(fields: [created_by], references: [id])
   created_by  Bytes         @db.Binary(16)
   created_at  DateTime      @default(now()) @db.Timestamp(0)
-  updated_at  DateTime      @default(now()) @db.Timestamp(0) @updatedAt
+  updated_at  DateTime      @default(now()) @updatedAt @db.Timestamp(0)
   teams_users teams_users[]
 
   @@index([created_by], map: "fk_teams_1")
@@ -81,7 +81,7 @@ model orders {
   paid            Boolean           @default(false)
   closed          Boolean           @default(false)
   created_at      DateTime          @default(now()) @db.Timestamp(0)
-  updated_at      DateTime          @default(now()) @db.Timestamp(0) @updatedAt
+  updated_at      DateTime          @default(now()) @updatedAt @db.Timestamp(0)
   orders_products orders_products[]
 
   @@index([id_user], map: "fk_orders_1")
@@ -110,7 +110,7 @@ model products {
   stock           Int               @default(0)
   active          Boolean
   created_at      DateTime          @default(now()) @db.Timestamp(0)
-  updated_at      DateTime          @default(now()) @db.Timestamp(0) @updatedAt
+  updated_at      DateTime          @default(now()) @updatedAt @db.Timestamp(0)
   orders_products orders_products[]
 
   @@index([id_category], map: "fk_products_1")
@@ -126,17 +126,18 @@ model events {
   fecha_de_evento DateTime          @db.Date
   events_opinions events_opinions[]
   users_events    users_events[]
+  events_modes    events_modes[]
 
   @@index([id_place], map: "fk_events_1")
 }
 
 model events_opinions {
-  id           Int    @id @default(autoincrement())
-  event        events @relation(fields: [id_event], references: [id])
-  id_event     Bytes  @db.Binary(16)
-  user         users  @relation(fields: [id_user], references: [id])
-  id_user      Bytes  @db.Binary(16)
-  opinion      String @db.VarChar(255)
+  id           Int                  @id @default(autoincrement())
+  event        events               @relation(fields: [id_event], references: [id])
+  id_event     Bytes                @db.Binary(16)
+  user         users                @relation(fields: [id_user], references: [id])
+  id_user      Bytes                @db.Binary(16)
+  opinion      String               @db.VarChar(255)
   calification allowed_calification
 
   @@index([id_event], map: "fk_events_opinions_1")
@@ -144,12 +145,12 @@ model events_opinions {
 }
 
 model instructors_opinions {
-  id           Int         @id @default(autoincrement())
-  instructor   instructors @relation(fields: [id_instrutor], references: [id_user])
-  id_instrutor Bytes       @db.Binary(16)
-  user         users       @relation(fields: [id_user], references: [id])
-  id_user      Bytes       @db.Binary(16)
-  opinion      String      @db.VarChar(150)
+  id           Int                  @id @default(autoincrement())
+  instructor   instructors          @relation(fields: [id_instrutor], references: [id_user])
+  id_instrutor Bytes                @db.Binary(16)
+  user         users                @relation(fields: [id_user], references: [id])
+  id_user      Bytes                @db.Binary(16)
+  opinion      String               @db.VarChar(150)
   calification allowed_calification
 
   @@index([id_instrutor], map: "fk_instructors_opinions_1")
@@ -177,6 +178,25 @@ model users_events {
 
   @@index([id_event], map: "fk_users_events_1")
   @@index([id_user], map: "fk_users_events_2")
+}
+
+model modes {
+  id           Int            @id @default(autoincrement())
+  name         String         @db.VarChar(100)
+  description  String         @db.VarChar(255)
+  image_url    Json
+  events_modes events_modes[]
+}
+
+model events_modes {
+  event    events @relation(fields: [id_event], references: [id])
+  id_event Bytes  @db.Binary(16)
+  mode     modes  @relation(fields: [id_mode], references: [id])
+  id_mode  Int
+
+  @@id([id_mode, id_event])
+  @@index([id_mode], map: "fk_events_modes_1")
+  @@index([id_event], map: "fk_events_modes_2")
 }
 
 enum users_rol {

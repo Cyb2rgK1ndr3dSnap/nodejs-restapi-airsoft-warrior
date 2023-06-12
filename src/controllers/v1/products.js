@@ -98,7 +98,7 @@ const createProduct = async (req, res)=>{
             }
                 return res.status(500).json({
                     isSuccess: false,
-                    error:"Error al cargar imagen"
+                    error:"Error al crear producto"
                 });
     }catch(error){
         console.log(error)
