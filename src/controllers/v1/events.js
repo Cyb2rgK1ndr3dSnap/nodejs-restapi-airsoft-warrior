@@ -14,17 +14,20 @@ const getEvents = async (req,res) =>{
                 }
             },
             select:{
-                place:true,
+                id:true,
+                price:true,
+                fecha_de_evento:true,
+                place:true
             }
         });
-
-        result.forEach( (value, key, map) => {
-            value.id=uuidParse.unparse(value.id);
-        });
-
-        res.status(200).json(result)
-
+        if(result.length > 0){
+            result.forEach( (value, key, map) => {
+                value.id=uuidParse.unparse(value.id);
+            });
+            res.status(200).json(result)
+        }
         
+        res.status(404).json()
     } catch (error) {
         console.log(error)
         res.status(500).json({
@@ -41,8 +44,17 @@ const getEvent = async (req,res) =>{
         const result = await prisma.events.findUnique({
             where:{
                 id:Buffer.from(bytes)
+            },
+            select:{
+                name:true,
+                id:true,
+                price:true,
+                fecha_de_evento:true,
+                description:true,
+                place:true
             }
         })
+        result.id = uuidParse.unparse(result.id)
         res.status(200).json(result)
     } catch (error) {
         console.log(error)

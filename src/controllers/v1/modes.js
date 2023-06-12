@@ -12,7 +12,7 @@ const getModes = async (req, res) =>{
         console.log(error)
         res.status(500).json({
             isSuccess: false,
-            message:'Error al obtener productos, contacté con soporté',
+            message:'Error al obtener modos de juego, contacté con soporté',
         })
     }
 }
@@ -30,7 +30,7 @@ const getMode = async (req, res) =>{
         console.log(error)
         res.status(500).json({
             isSuccess: false,
-            message:'Error al obtener productos, contacté con soporté',
+            message:'Error al obtener modo de juego, contacté con soporté',
         })
     }
 }
@@ -64,12 +64,34 @@ const createMode = async (req, res) =>{
         console.log(error)
         res.status(500).json({
             isSuccess: false,
-            message:'Error al obtener productos, contacté con soporté',
+            message:'Error al crear modo de juego, contacté con soporté',
+        })
+    }
+}
+//###DESARROLLAR UPDATE AND DELETE
+const updateMode = async (req, res)=>{
+    try {
+        
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            isSuccess: false,
+            message:'Error al actualizar modo de juego, contacté con soporté',
         })
     }
 }
 
-//###CREAR UPDATE AND DELETE
+const deleteMode = async (req, res) =>{
+    try {
+        
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            isSuccess: false,
+            message:'Error al eliminar modo de juego, contacté con soporté',
+        })
+    }
+}
 
 module.exports = {
     getModes,

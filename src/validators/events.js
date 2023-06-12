@@ -1,6 +1,13 @@
 const { check } = require("express-validator");
 const { validateResult } = require("../utils/handleValidator");
 
+const validatePagination = (req, res, next) => {
+    if(!req.query.p || req.query.p <=0){
+        req.query.p=1
+    }
+    next()
+}
+
 const validateCreate = [
     check("id_place").exists().notEmpty().isInt(),
     check("description").exists().notEmpty(),
@@ -29,6 +36,7 @@ const validateId = [
 ]
 
 module.exports = {
+    validatePagination,
     validateId,
     validateCreate,
     validateUpdate

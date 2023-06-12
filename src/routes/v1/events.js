@@ -11,13 +11,14 @@ const {
 } = require("../../controllers/v1/events")
 
 const {
+    validatePagination,
     validateId,
     validateCreate,
     validateUpdate
 } = require("../../validators/events")
 
 router
-    .get(`/`,getEvents)
+    .get(`/`, validatePagination, getEvents)
 
     .get(`/:id`,validateId,getEvent)
 
