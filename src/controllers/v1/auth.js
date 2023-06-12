@@ -323,7 +323,13 @@ const getProfile = async (req, res) => {
                 id_google:true,
                 name:true,
                 lastname:true,
-                email:true
+                email:true,
+                teams:{
+                    select:{
+                        name:true,
+                        image_url:true
+                    }
+                }
             }
         })
         result.id = uuidParse.unparse(result.id)
