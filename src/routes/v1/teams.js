@@ -11,19 +11,26 @@ const {
 } = require("../../controllers/v1/teams")
 
 const {
+    validatePagination,
+    validateId,
+    validateCreate,
+    validateUpdate
+} = require("../../validators/teams")
+
+const {
     chechAuth
 } = require("../../middleware/auth")
 
 router
-    .get(`/`,getTeams)
+    .get(`/`, validatePagination, getTeams)
 
-    .get(`:id`,getTeam)
+    .get(`:id`, validateId, getTeam)
 
-    .post(`/`,chechAuth,multerUpload.single('image'),createTeam)
+    .post(`/`,chechAuth, validateCreate, multerUpload.single('image'),createTeam)
 
-    .put(`/:id`,chechAuth,updateTeam)
+    .put(`/:id`, validateId, validateUpdate, chechAuth, updateTeam)
 
-    .delete(`/:id`, chechAuth,deleteTeam)
+    .delete(`/:id`,validateId, chechAuth, deleteTeam)
 
     .get(`/profile`, chechAuth, getProfileTeam)
 
