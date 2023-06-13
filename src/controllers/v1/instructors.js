@@ -29,9 +29,9 @@ const getInstructors = async (req, res) => {
         })
 
         if(result.length > 0){
-            result.forEach( (value, key, map) => {
+            /*result.forEach( (value, key, map) => {
                 value.id_user=uuidParse.unparse(value.id_user);
-            });
+            });*/
             return res.status(200).json(result)
         }
 
@@ -239,7 +239,8 @@ const getProfile = async (req, res) => {
             result.id_user = uuid
             return res.status(200).json(result)
         }
-        return res.status(404).json(result)
+
+        return res.status(404).json()
     } catch (error) {
         console.log(error)
         res.status(500).json({

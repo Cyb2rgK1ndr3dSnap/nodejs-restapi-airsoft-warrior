@@ -4,8 +4,6 @@ const {
     deletes
 } = require("../../utils/handleCloudinary.js");
 
-const fs = require ('fs');
-
 const getPlaces = async (req,res) => {
     try {
         const result = await prisma.places.findMany({})

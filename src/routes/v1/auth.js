@@ -1,9 +1,7 @@
 const { Router } = require ("express");
-const multerUpload = require("../../utils/handleStorage")
 const router = Router()
-//const {authGoogle} = require("../../middleware/authGoogle")
-//const {googleSignup} = require("../../controllers/v1/testingAuth")
-//const redirectURI = "google";
+const multerUpload = require("../../utils/handleStorage")
+
 const {
   getGoogleAuthURL,
   loginUserGoogle,

@@ -4,6 +4,8 @@ const {
     deletes
 } = require("../../utils/handleCloudinary.js");
 
+const uuidParse = require('uuid-parse');
+
 const getModes = async (req, res) =>{
     try {
         const result = await prisma.modes.findMany({})
@@ -71,7 +73,50 @@ const createMode = async (req, res) =>{
 //###DESARROLLAR UPDATE AND DELETE
 const updateMode = async (req, res)=>{
     try {
-        
+        const {id} = req.params;
+        const {name,description} = req.body;
+        const bytes = uuidParse.parse(id);
+        let image_url= {};
+        let response = "";
+        if(req.file){
+            const path = req.file.path;
+            const mode = await prisma.products.findUnique({
+                where:{
+                    id:Buffer.from(bytes)
+                },
+                select:{
+                    image_url:true
+                }
+            })
+            image_url = await uploads(path, 'modes');
+            if(!image_url){
+                return res.status(500).json({
+                    isSuccess:false,
+                    message:"Error al cargar imagen"
+                })
+            }
+            response = await deletes(mode.image_url.id)
+        }
+
+        if(req.file===undefined || response.response === "ok" || response.response === "not found"){
+            const result = prisma.modes.update({
+                where:{
+                    id:Buffer.from(bytes)
+                },
+                data:{
+                    name: name || undefined,
+                    description: description || undefined,
+                    image_url: image_url || undefined
+                }
+            })
+            if(result){
+                return res.status(204).json()
+            }
+        }
+        return res.status(500).json({
+            isSucces:false,
+            message:"Error al actualizar información"
+        })
     } catch (error) {
         console.log(error)
         res.status(500).json({
@@ -83,7 +128,30 @@ const updateMode = async (req, res)=>{
 
 const deleteMode = async (req, res) =>{
     try {
+        const{id}= req.params
+        const bytes = uuidParse.parse(id);
+        const result = await prisma.modes.findUnique({
+            where:{
+                id:Buffer.from(bytes),
+            },
+            select: {
+                image_url:true
+            },
+        })
+        const response = await deletes(result.image_url.id)
+        if(response.response === "ok" || response.response === "not found"){
+            const result2 = await prisma.modes.delete({
+                where:  {
+                    id:Buffer.from(bytes),
+                }
+            })   
+            if(result2) return res.status(204).json()
+        }
         
+        res.status(500).json({
+            isSuccess:false,
+            message:"Error al eliminar modo de juego"
+        })
     } catch (error) {
         console.log(error)
         res.status(500).json({
@@ -96,5 +164,7 @@ const deleteMode = async (req, res) =>{
 module.exports = {
     getModes,
     getMode,
-    createMode
+    createMode,
+    updateMode,
+    deleteMode
 }

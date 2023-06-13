@@ -18,7 +18,7 @@ const validateId = [
 const validateCreate = [
     check("video_url").exists().notEmpty().optional(),
     check("description").exists().notEmpty(),
-    check("specialist").exists().notEmpty(),
+    check("specialist").exists().notEmpty().isArray(),
     (req, res, next) => {
         validateResult(req, res, next);
     },

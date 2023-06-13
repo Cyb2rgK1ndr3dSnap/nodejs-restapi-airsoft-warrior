@@ -50,7 +50,17 @@ const getEvent = async (req,res) =>{
                 price:true,
                 fecha_de_evento:true,
                 description:true,
-                place:true
+                place:true,
+                events_modes:{
+                    select:{
+                        mode:{
+                            select:{
+                                name:true,
+                                image_url:true
+                            }
+                        }
+                    }
+                }
             }
         })
         if(result){
@@ -69,17 +79,33 @@ const getEvent = async (req,res) =>{
 
 const createEvent = async (req,res) =>{
     try {
-        const {id_place,name,description,price,fecha_de_evento} = req.body
-        const result = await prisma.events.create({
-            data:{
-                name:name,
-                id_place:parseInt(id_place),
-                description,
-                price,
-                fecha_de_evento:new Date(fecha_de_evento)
-            }
+        const {id_place,name,description,price,fecha_de_evento,modes} = req.body
+        const result = await prisma.$transaction( async prisma =>{
+            data = []
+            const event = await prisma.events.create({
+                data:{
+                    name:name,
+                    id_place:parseInt(id_place),
+                    description,
+                    price,
+                    fecha_de_evento:new Date(fecha_de_evento),
+                }
+            })
+
+            await modes.forEach((value) => {
+                data.push({id_event:event.id,id_mode:parseInt(value.id)})
+            })
+
+            await prisma.events_modes.createMany({
+                data:data
+            })
+
+            return {event}
         })
-        return res.status(200).json(result)
+        
+        if(result) return res.status(200).json(result)
+
+        return res.status(400).json()
     } catch (error) {
         console.log(error)
         res.status(500).json({

@@ -3,7 +3,7 @@ const {
     uploads,
     deletes
 } = require("../../utils/handleCloudinary.js");
-//const fs = require ('fs');
+
 const uuidParse = require('uuid-parse');
 
 const getProducts = async (req ,res)=>{
@@ -157,12 +157,10 @@ const updateProduct = async (req,res)=>{
                     active:active || undefined
                 }
             })
-
             if(result){
                 return res.status(204).json()
             }
         }
-
         return res.status(500).json({
             isSucces:false,
             message:"Error al actualizar información"

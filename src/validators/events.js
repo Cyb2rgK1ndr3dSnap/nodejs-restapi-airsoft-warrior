@@ -13,6 +13,7 @@ const validateCreate = [
     check("description").exists().notEmpty(),
     check("price").exists().notEmpty().isDecimal(),
     check("fecha_de_evento").exists().notEmpty(),
+    check("modes").exists().notEmpty().isArray(),
     (req, res, next) => {
         validateResult(req, res, next);
     },

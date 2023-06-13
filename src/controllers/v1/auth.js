@@ -138,7 +138,7 @@ const loginUserGoogle = async (req, res) => {
 }
 
 const createUser = async (req,res) =>{
-    const {email,name,age,password,cpassword} = req.body
+    const {email,name,lastname,age,password,cpassword} = req.body
     let image_url;
     if(!(password===cpassword)) 
         return res.status(500).json({isSuccess:false,message:"Las constraseña no coinciden"})
@@ -171,6 +171,7 @@ const createUser = async (req,res) =>{
                 data:{
                     image_url,
                     name,
+                    lastname: lastname || undefined,
                     age:parseInt(age),
                     email,
                     password:passencrypt
@@ -359,7 +360,7 @@ const getCookie = async (req, res) => {
 const deleteCookie = (req,res) =>{
     try{
         cookieCreate(req,res,process.env.COOKIE_NAME,"",0)
-        res.redirect(`${process.env.UI_ROOT_URI}`);
+        return res.status(301).json({isSuccess:true,url:`${process.env.UI_ROOT_URI}`});
     }catch (error){
         console.log(error)
         res.status(500).json(error)
