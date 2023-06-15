@@ -1,4 +1,8 @@
 const {prisma} = require("../../config/connection")
+const {
+    uploads,
+    deletes
+} = require("../../utils/handleCloudinary.js");
 
 const uuidParse = require('uuid-parse');
 
@@ -80,10 +84,23 @@ const getEvent = async (req,res) =>{
 const createEvent = async (req,res) =>{
     try {
         const {id_place,name,description,price,fecha_de_evento,modes} = req.body
+        let image_url;
+
+        if(req.file){
+            const path = req.file.path;
+            image_url = await uploads(path,"events");
+        }else{
+            image_url = {
+                id:"events/defaultevent_mxajmg",
+                url:"https://res.cloudinary.com/dgfhyw8un/image/upload/v1686849926/events/defaultevent_mxajmg.png"
+            }
+        }
+
         const result = await prisma.$transaction( async prisma =>{
             data = []
             const event = await prisma.events.create({
                 data:{
+                    image_url,
                     name:name,
                     id_place:parseInt(id_place),
                     description,

@@ -61,6 +61,7 @@ model instructors {
   id_user              Bytes                  @id @db.Binary(16)
   video_url            String?                @db.VarChar(250)
   description          String                 @db.VarChar(250)
+  total                Decimal                @default(0.00) @db.Decimal(5, 2)
   specialist           Json
   instructors_opinions instructors_opinions[]
 
@@ -118,6 +119,7 @@ model products {
 
 model events {
   id              Bytes             @id @default(dbgenerated("(uuid_to_bin(uuid(),1))")) @db.Binary(16)
+  image_url       Json
   name            String            @db.VarChar(255)
   place           places            @relation(fields: [id_place], references: [id])
   id_place        Int
