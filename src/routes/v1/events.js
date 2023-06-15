@@ -22,8 +22,8 @@ router
 
     .get(`/:id`,validateId,getEvent)
 
-    .post(`/`,validateCreate,createEvent)
-
+    .post(`/`,validateCreate, multerUpload.single("image"),createEvent)
+    //AGREGAR ACTUALIZACIÓN DE IMAGEN
     .put(`/:id`,validateId,validateUpdate,updateEvent)
 
     .delete(`/:id`,validateId,deleteEvent)
