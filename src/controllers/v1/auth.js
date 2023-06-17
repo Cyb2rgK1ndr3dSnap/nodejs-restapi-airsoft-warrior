@@ -350,7 +350,12 @@ const getProfile = async (req, res) => {
 const getCookie = async (req, res) => {
     try {
       //const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].token);
-      return res.status(200).json({token:req.cookies[process.env.COOKIE_NAME].token})
+      //return res.status(200).json({token:req.cookies[process.env.COOKIE_NAME].token})
+      if(req.cookies[process.env.COOKIE_NAME]){
+        return res.status(200).json({loggedIn:true})
+      }else{
+        return res.status(200).json({loggedIn:false})
+      }
     } catch (error) {
       console.log(error);
       res.status(500).json(error);

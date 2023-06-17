@@ -2,9 +2,11 @@ const { prisma } = require("../../config/connection")
 require("dotenv/config")
 const uuidParse = require('uuid-parse');
 const axios = require("axios");
-const { Result } = require("express-validator");
+const { uploads } = require("../../utils/handleCloudinary");
 
 const auth = {username:process.env.PAYPAL_CLIENT_ID,password:process.env.PAYPAL_CLIENT_SECRET}
+const params = new URLSearchParams();
+params.append("grant_type", "client_credentials");
 
 const createOrder = async (req, res) => {
     try{
@@ -15,6 +17,7 @@ const createOrder = async (req, res) => {
     order.forEach( (value, key, map) => {
         value.id=uuidParse.parse(value.id);
     });
+    
     const result = await prisma.products.findMany({
         where:{
             id: { 
@@ -32,66 +35,47 @@ const createOrder = async (req, res) => {
     await order.forEach(async (value,index,arr) => {
         return result.forEach((valuedb)=>{
             if(Buffer.compare(Buffer.from(value.id),Buffer.from(valuedb.id))===0){
-                console.log(`Cantidad en stock ${valuedb.stock}, cantidad del pedido ${value.quantity}`)
+                //console.log(`Cantidad en stock ${valuedb.stock}, cantidad del pedido ${value.quantity}`)
                 if(parseInt(valuedb.stock)>=parseInt(value.quantity)){
                     valuedb.stock = parseInt(value.quantity)
                 }else{
                     arr.length = index + 1
                     check = false
-                    console.log("MAYOR A STOCK")
+                    //console.log("MAYOR A STOCK")
                 }
             }
         })
     })
-
-    console.log(result)
-    console.log(check)
     
     if(check === false) return res.status(500).json({
         isSuccess:false,
         message:"No hay suficiente productos en stock"
     })
-    
-    return res.status(200).json({
-        isSuccess:true,
-        message:"All rigth"
-    })
+    const total = result.reduce((a,b)=>  a + b.price * b.stock,0).toFixed(2)
+
+    result.forEach( (value, key, map) => {
+        value.id=uuidParse.unparse(value.id);
+    });
+
     const body = {
         "intent":"CAPTURE",
         "purchase_units":[
             {
-                "reference_id": "PUHF",
+                //"reference_id": "PUHF",
                 "description": "Some description",
                 "custom_id": "Something7364",
                 "soft_descriptor": "Great description 1",
                 "amount": {
                     "currency_code":"USD",
-                    "value":"600.00",
+                    "value":total,
                     "breakdown":{
                         "item_total":{
                             "currency_code":"USD",
-                            "value": "600.00"
+                            "value": total
                         }
                     }
                 },  
-                "items": [
-                    {
-                        "name":"This is a example 1",
-                        "quantity":"1",
-                        "unit_amount":{
-                            "currency_code": "USD",
-                            "value": "200.00"
-                        }
-                    },
-                    {
-                        "name":"This is a example 2",
-                        "quantity":"2",
-                        "unit_amount":{
-                            "currency_code": "USD",
-                            "value": "200.00"
-                        }
-                    }
-                ]
+                "items": []
             }
         ],
         application_context: {
@@ -103,11 +87,21 @@ const createOrder = async (req, res) => {
         }
     }
 
-    const params = new URLSearchParams();
-    params.append("grant_type", "client_credentials");
+    result.map((product)=> body.purchase_units[0].items.push({
+        name:product.name,
+        sku:product.id,
+        quantity:product.stock,
+        unit_amount:{
+            currency_code:"USD",
+            value:product.price// is the quantity of the user required
+        }
+    }))
+
+    //const params = new URLSearchParams();
+    //params.append("grant_type", "client_credentials");
 
     const {
-        data: { access_token},
+        data: {access_token},
     } = await axios.post(
         `${process.env.PAYPAL_API}/v1/oauth2/token`,
         params,
@@ -130,35 +124,46 @@ const createOrder = async (req, res) => {
             },
         },
     )
+    //.then((response) => res.redirect(response.data.links[1].href))
     .then((response) => res.status(200).json({data: response.data}))
     }catch(error){
         console.log(`Failed to fetch order`);
-        console.log(error)
+        console.log(error.response.data.details)
         res.status(500).json({isSuccess:false,message:"Algo ha fallado, intentelo de nuevo"})
     }
-    /*
-    .catch((error) => {
-        console.error(`Failed to fetch order`);
-        res.status(500).json({isSuccess:false,message:"Algo ha fallado, intentelo de nuevo"})
-        //throw new Error(error);
-    });*/
 }
 
 const captureOrder = async (req, res) =>{
     const { token } = req.query;
-
+    let updates = [];
+    //`${process.env.PAYPAL_API}/v2/checkout/orders/${token}/capture`,
     try {
-        const response = await axios.post(
-            `${process.env.PAYPAL_API}/v2/checkout/orders/${token}/capture`,
-            {},
+        const response = await axios.get(
+            `${process.env.PAYPAL_API}/v2/checkout/orders/${token}`,
             {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
                 auth
             }
         );
 
-        console.log(response.data)
+        response.data.purchase_units[0].items.map(product => {
+            updates.push(prisma.products.update({
+                where: {
+                    id: Buffer.from(uuidParse.parse(product.sku))
+                },
+                data:{
+                    stock:{
+                        decrement: parseInt(product.quantity)
+                    }
+                }
+            }))
+        })
 
-        res.status(200).json({data:response.data})
+        const result = await prisma.$transaction(updates)
+
+        res.status(200).json(response.data)
         
     } catch (error) {
         console.log(error)
