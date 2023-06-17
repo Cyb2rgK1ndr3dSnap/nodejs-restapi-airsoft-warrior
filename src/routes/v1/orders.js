@@ -7,8 +7,12 @@ const {
     cancelOrder
 } = require("../../controllers/v1/orders")
 
+const {
+    chechAuth
+} = require("../../middleware/auth")
+
 router
-    .post(`/create-order`,createOrder)
+    .post(`/create-order`, chechAuth, createOrder)
 
     .get(`/capture-order`,captureOrder)
 

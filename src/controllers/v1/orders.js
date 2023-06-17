@@ -2,7 +2,6 @@ const { prisma } = require("../../config/connection")
 require("dotenv/config")
 const uuidParse = require('uuid-parse');
 const axios = require("axios");
-const { uploads } = require("../../utils/handleCloudinary");
 
 const auth = {username:process.env.PAYPAL_CLIENT_ID,password:process.env.PAYPAL_CLIENT_SECRET}
 const params = new URLSearchParams();
@@ -12,6 +11,7 @@ const createOrder = async (req, res) => {
     try{
     //[id,id,id,id,id,id]
     const {order} = req.body;
+    const userIdCookie = req.userIdCookie
     let check;
     
     order.forEach( (value, key, map) => {
@@ -63,8 +63,8 @@ const createOrder = async (req, res) => {
             {
                 //"reference_id": "PUHF",
                 "description": "Some description",
-                "custom_id": "Something7364",
-                "soft_descriptor": "Great description 1",
+                "custom_id": userIdCookie,
+                "soft_descriptor": "Airsoft_Warrior Buy",
                 "amount": {
                     "currency_code":"USD",
                     "value":total,
@@ -82,8 +82,8 @@ const createOrder = async (req, res) => {
             brand_name: `Airsoft Warriors`,
             landing_page: `NO_PREFERENCE`,
             user_action:`PAY_NOW`,
-            return_url:`${process.env.UI_ROOT_URI}/api/orders/capture-order`,
-            cancel_url:`${process.env.UI_ROOT_URI}/api/orders/cancel-order`
+            return_url:`${process.env.SERVER_ROOT_URI}/api/orders/capture-order`,
+            cancel_url:`${process.env.SERVER_ROOT_URI}/api/orders/cancel-order`
         }
     }
 
@@ -113,7 +113,6 @@ const createOrder = async (req, res) => {
         }
     )
     
-    
     const payment = await axios
         .post(
             `${process.env.PAYPAL_API}/v2/checkout/orders`, 
@@ -135,10 +134,21 @@ const createOrder = async (req, res) => {
 
 const captureOrder = async (req, res) =>{
     const { token } = req.query;
+    const products = [];
     let updates = [];
-    //`${process.env.PAYPAL_API}/v2/checkout/orders/${token}/capture`,
     try {
-        const response = await axios.get(
+        /*
+        const response = await axios.post(
+            `${process.env.PAYPAL_API}/v2/checkout/orders/${token}/capture`,
+            {},
+            {
+                auth
+            }
+        );
+        //###redirect to error page if the order not capture = error
+        if(!captureOrder) return res.redirect(``)*/
+
+        const orderData = await axios.get(
             `${process.env.PAYPAL_API}/v2/checkout/orders/${token}`,
             {
                 headers: {
@@ -148,10 +158,11 @@ const captureOrder = async (req, res) =>{
             }
         );
 
-        response.data.purchase_units[0].items.map(product => {
+        orderData.data.purchase_units[0].items.map(product => {
+            const bytes = uuidParse.parse(product.sku)
             updates.push(prisma.products.update({
                 where: {
-                    id: Buffer.from(uuidParse.parse(product.sku))
+                    id: Buffer.from(bytes)
                 },
                 data:{
                     stock:{
@@ -159,11 +170,30 @@ const captureOrder = async (req, res) =>{
                     }
                 }
             }))
+
+            products.push({id_products:Buffer.from(bytes),quantity:parseInt(product.quantity)})
+        })
+        
+        await prisma.$transaction(async prisma =>{
+            const order = await prisma.orders.create({
+                data:{
+                    id_user:Buffer.from(uuidParse.parse(orderData.data.purchase_units[0].custom_id)),
+                    total:orderData.data.purchase_units[0].amount.value
+                }
+            })
+            products.forEach((value)=>{
+                value["id_orders"] = order.id
+            })
+            await prisma.orders_products.createMany({
+                data:products
+            })
+            
+            updates.forEach(async (e)=>{
+                await e
+            })
         })
 
-        const result = await prisma.$transaction(updates)
-
-        res.status(200).json(response.data)
+        res.status(200).json(orderData.data)
         
     } catch (error) {
         console.log(error)

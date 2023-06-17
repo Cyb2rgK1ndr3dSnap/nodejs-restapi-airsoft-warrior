@@ -352,9 +352,9 @@ const getCookie = async (req, res) => {
       //const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].token);
       //return res.status(200).json({token:req.cookies[process.env.COOKIE_NAME].token})
       if(req.cookies[process.env.COOKIE_NAME]){
-        return res.status(200).json({loggedIn:true})
+        return res.status(200).json({isSuccess:true})
       }else{
-        return res.status(200).json({loggedIn:false})
+        return res.status(200).json({isSuccess:false})
       }
     } catch (error) {
       console.log(error);
