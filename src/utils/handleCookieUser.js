@@ -10,7 +10,7 @@ const cookieCreate = async (req,res,cookieName,value,maxAge) =>{
         maxAge: maxAge,
         httpOnly: true,
         secure: true,
-        sameSite:"None"
+        sameSite:false
     });
 }
 
