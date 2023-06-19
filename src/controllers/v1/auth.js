@@ -1,6 +1,5 @@
 const querystring = require("querystring");
 const axios = require("axios")
-const jwt = require("jsonwebtoken");
 const { prisma } = require('../../config/connection.js');
 const uuidParse = require('uuid-parse');
 require("dotenv/config");
@@ -15,8 +14,8 @@ const {
 } = require("../../utils/handleEncrypt.js")
 
 const{
-    cookieCreate
-} = require("../../utils/handleCookieUser.js");
+    cookieUser
+} = require("../../utils/handleCookie.js");
 
 const{
     tokenSign,
@@ -128,7 +127,7 @@ const loginUserGoogle = async (req, res) => {
         user.id = uuid
 
         token = await tokenSign(user)
-        cookieCreate(req,res,process.env.COOKIE_NAME,token,3600000)
+        cookieUser(req,res,process.env.COOKIE_NAME,token,3600000)
 
         return res.redirect(`${process.env.UI_ROOT_URI}`);
       } catch (error) {
@@ -225,7 +224,7 @@ const loginUser = async (req,res)=>{
             const uuid = uuidParse.unparse(user.id)
             user.id = uuid
             const token = await tokenSign(user)
-            cookieCreate(req,res,process.env.COOKIE_NAME,token,3600000);
+            cookieUser(req,res,process.env.COOKIE_NAME,token,3600000);
             //return res.redirect(302,`${process.env.UI_ROOT_URI}`);
             return res.status(301).json({isSuccess:true,url:`${process.env.UI_ROOT_URI}`});
         }
@@ -364,7 +363,7 @@ const getCookie = async (req, res) => {
 
 const deleteCookie = (req,res) =>{
     try{
-        cookieCreate(req,res,process.env.COOKIE_NAME,"",0)
+        cookieUser(req,res,process.env.COOKIE_NAME,"",0)
         return res.status(301).json({isSuccess:true,url:`${process.env.UI_ROOT_URI}`});
     }catch (error){
         console.log(error)

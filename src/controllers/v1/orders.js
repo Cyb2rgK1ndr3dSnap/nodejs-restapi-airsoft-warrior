@@ -20,7 +20,7 @@ const createOrder = async (req, res) => {
     
     const result = await prisma.products.findMany({
         where:{
-            id: { 
+            id: {
                 in: order.map(product => Buffer.from(product.id)) 
             }
         },
@@ -31,7 +31,16 @@ const createOrder = async (req, res) => {
             stock:true
         }
     })
-    
+    /*
+    result.map((x)=>{
+        console.log(x.id.toString('hex'))
+
+        const test = x.id.toString('hex')
+        console.log(x.id)
+        console.log(Buffer.from(test, "hex"))
+    })
+    return
+    */
     await order.forEach(async (value,index,arr) => {
         return result.forEach((valuedb)=>{
             if(Buffer.compare(Buffer.from(value.id),Buffer.from(valuedb.id))===0){
@@ -83,7 +92,7 @@ const createOrder = async (req, res) => {
             landing_page: `NO_PREFERENCE`,
             user_action:`PAY_NOW`,
             return_url:`${process.env.SERVER_ROOT_URI}/api/orders/capture-order`,
-            cancel_url:`${process.env.SERVER_ROOT_URI}/api/orders/cancel-order`
+            cancel_url:`${process.env.UI_ROOT_URI}/cancel`
         }
     }
 
@@ -136,9 +145,9 @@ const captureOrder = async (req, res) =>{
     const { token } = req.query;
     const products = [];
     let updates = [];
+    let result;
     try {
-        /*
-        const response = await axios.post(
+        const captureOrder = await axios.post(
             `${process.env.PAYPAL_API}/v2/checkout/orders/${token}/capture`,
             {},
             {
@@ -146,7 +155,7 @@ const captureOrder = async (req, res) =>{
             }
         );
         //###redirect to error page if the order not capture = error
-        if(!captureOrder) return res.redirect(``)*/
+        if(!captureOrder) return res.redirect(`${process.env.UI_ROOT_URI}/cancel`)
 
         const orderData = await axios.get(
             `${process.env.PAYPAL_API}/v2/checkout/orders/${token}`,
@@ -160,9 +169,17 @@ const captureOrder = async (req, res) =>{
 
         orderData.data.purchase_units[0].items.map(product => {
             const bytes = uuidParse.parse(product.sku)
-            updates.push(prisma.products.update({
+            updates.push(prisma.products.updateMany({
                 where: {
-                    id: Buffer.from(bytes)
+                    id: Buffer.from(bytes),
+                    AND:[
+                        {stock: {
+                            gte: parseInt(product.quantity)
+                        }},
+                        {stock: {
+                            gt: 0
+                        }}
+                    ]
                 },
                 data:{
                     stock:{
@@ -170,7 +187,6 @@ const captureOrder = async (req, res) =>{
                     }
                 }
             }))
-
             products.push({id_products:Buffer.from(bytes),quantity:parseInt(product.quantity)})
         })
         
@@ -180,23 +196,30 @@ const captureOrder = async (req, res) =>{
                     id_user:Buffer.from(uuidParse.parse(orderData.data.purchase_units[0].custom_id)),
                     total:orderData.data.purchase_units[0].amount.value
                 }
-            })
+            });
             products.forEach((value)=>{
                 value["id_orders"] = order.id
-            })
+            });
+
             await prisma.orders_products.createMany({
                 data:products
-            })
+            });
             
-            updates.forEach(async (e)=>{
-                await e
-            })
-        })
-
-        res.status(200).json(orderData.data)
-        
+            await Promise.all(updates.map(async (e)=>{
+                (result) = await e
+                console.log(result.count)
+                if(result.count===0){
+                    throw 400
+                }
+            }));
+            
+        });
+        //res.status(200).json(orderData.data)
+        //### CLEAN COOKIE
+        res.redirect(`${process.env.UI_ROOT_URI}/payed`)
     } catch (error) {
         console.log(error)
+        res.redirect(`${process.env.UI_ROOT_URI}/cancel`)
         res.status(500).json({isSuccess:false,message:"Error recargé la página, comuniquese con soporte técnico"})
     }
 }

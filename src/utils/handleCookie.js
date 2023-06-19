@@ -1,6 +1,6 @@
 require("dotenv/config");
 
-const cookieCreate = async (req,res,cookieName,value,maxAge) =>{
+const cookieUser = async (req,res,cookieName,value,maxAge) =>{
     await res.cookie(cookieName, 
     {
         token:value
@@ -14,6 +14,8 @@ const cookieCreate = async (req,res,cookieName,value,maxAge) =>{
     });
 }
 
+
+
 module.exports = {
-    cookieCreate
+    cookieUser
 }

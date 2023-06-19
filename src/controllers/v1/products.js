@@ -29,7 +29,8 @@ const getProducts = async (req ,res)=>{
         
         if(result.length > 0){
             result.forEach( (value, key, map) => {
-                value.id=uuidParse.unparse(value.id);
+                //value.id=uuidParse.unparse(value.id);
+                value.id=value.id.toString("hex")
             });
             return res.status(200).json(result);
         }
@@ -47,10 +48,10 @@ const getProducts = async (req ,res)=>{
 const getProduct = async (req ,res)=>{
     try {
         const{id} = req.params;
-        const bytes = uuidParse.parse(id);
+        //const bytes = uuidParse.parse(id);
         const result = await prisma.products.findUnique({
             where: {
-                id:Buffer.from(bytes),
+                id:Buffer.from(id,'hex'),
             },
             select: {
                 id:true,
@@ -64,13 +65,12 @@ const getProduct = async (req ,res)=>{
         })
 
         if(result){
-            result.id = uuidParse.unparse(result.id)
+            result.id = result.id.toString('hex')
             return res.status(200).json(result);
         }
-
         return res.status(500).json({
             isSuccess: false,
-            error:"Error al crear producto"
+            error:"Error al obtener producto"
         });
     } catch (error) {
         console.log(error)
@@ -121,7 +121,7 @@ const createProduct = async (req, res)=>{
 const updateProduct = async (req,res)=>{
     const{id}= req.params;
     const{id_category,name,description,price,stock,active} = req.body;
-    const bytes = uuidParse.parse(id);
+    //const bytes = uuidParse.parse(id);
     let image_url= {};
     let response = "";
     try{
@@ -129,7 +129,7 @@ const updateProduct = async (req,res)=>{
             const path = req.file.path;
             const product = await prisma.products.findUnique({
                 where:{
-                    id:Buffer.from(bytes)
+                    id:Buffer.from(id,'hex')
                 },
                 select:{
                     image_url:true
@@ -172,30 +172,35 @@ const updateProduct = async (req,res)=>{
 }
 
 const deleteProduct = async (req,res)=>{
-    const{id}= req.params
-    const bytes = uuidParse.parse(id);
-    const result = await prisma.products.findUnique({
-        where:{
-            id:Buffer.from(bytes),
-        },
-        select: {
-            image_url:true
-        },
-    })
-    const response = await deletes(result.image_url.id)
-    if(response.response === "ok" || response.response === "not found"){
-        const result2 = await prisma.products.delete({
-            where:  {
-                id:Buffer.from(bytes),
-            }
-        })   
-        if(result2) return res.status(204).json()
+    try {
+        const{id}= req.params
+        //const bytes = uuidParse.parse(id);
+        const result = await prisma.products.findUnique({
+            where:{
+                id:Buffer.from(id,'hex'),
+            },
+            select: {
+                image_url:true
+            },
+        })
+        const response = await deletes(result.image_url.id)
+        if(response.response === "ok" || response.response === "not found"){
+            const result2 = await prisma.products.delete({
+                where:  {
+                    id:Buffer.from(bytes),
+                }
+            })   
+            if(result2) return res.status(204).json()
+        }
+        
+        res.status(500).json({
+            isSuccess:false,
+            message:"Error al eliminar producto"
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({isSuccess:false,message:"Error al actualizar producto, comuniquese con soporte técnico"})
     }
-    
-    res.status(500).json({
-        isSuccess:false,
-        message:"Error al eliminar producto"
-    })
 }
 
 module.exports = {
