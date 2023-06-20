@@ -9,7 +9,7 @@ const validatePagination = (req, res, next) => {
 }
 
 const validateId = [
-    check("id").exists().notEmpty().isUUID(),
+    check("id").exists().notEmpty(),
     (req, res, next) => {
         validateResult(req, res, next);
     },

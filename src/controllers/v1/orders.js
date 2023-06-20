@@ -1,7 +1,6 @@
 const { prisma } = require("../../config/connection")
-require("dotenv/config")
-const uuidParse = require('uuid-parse');
 const axios = require("axios");
+require("dotenv/config")
 
 const auth = {username:process.env.PAYPAL_CLIENT_ID,password:process.env.PAYPAL_CLIENT_SECRET}
 const params = new URLSearchParams();
@@ -14,14 +13,12 @@ const createOrder = async (req, res) => {
     const userIdCookie = req.userIdCookie
     let check;
     
-    order.forEach( (value, key, map) => {
-        value.id=uuidParse.parse(value.id);
-    });
+    //VALIDAR QUE ORDER CONTENGA id y quantity en todos los campos
     
     const result = await prisma.products.findMany({
         where:{
             id: {
-                in: order.map(product => Buffer.from(product.id)) 
+                in: order.map(product => Buffer.from(product.id,'hex')) 
             }
         },
         select:{
@@ -63,7 +60,7 @@ const createOrder = async (req, res) => {
     const total = result.reduce((a,b)=>  a + b.price * b.stock,0).toFixed(2)
 
     result.forEach( (value, key, map) => {
-        value.id=uuidParse.unparse(value.id);
+        value.id=value.id.toString('hex');
     });
 
     const body = {
@@ -136,7 +133,6 @@ const createOrder = async (req, res) => {
     .then((response) => res.status(200).json({data: response.data}))
     }catch(error){
         console.log(`Failed to fetch order`);
-        console.log(error.response.data.details)
         res.status(500).json({isSuccess:false,message:"Algo ha fallado, intentelo de nuevo"})
     }
 }
@@ -168,10 +164,9 @@ const captureOrder = async (req, res) =>{
         );
 
         orderData.data.purchase_units[0].items.map(product => {
-            const bytes = uuidParse.parse(product.sku)
             updates.push(prisma.products.updateMany({
                 where: {
-                    id: Buffer.from(bytes),
+                    id: Buffer.from(product.sku,'hex'),
                     AND:[
                         {stock: {
                             gte: parseInt(product.quantity)
@@ -193,7 +188,7 @@ const captureOrder = async (req, res) =>{
         await prisma.$transaction(async prisma =>{
             const order = await prisma.orders.create({
                 data:{
-                    id_user:Buffer.from(uuidParse.parse(orderData.data.purchase_units[0].custom_id)),
+                    id_user:Buffer.from(orderData.data.purchase_units[0].custom_id,'hex'),
                     total:orderData.data.purchase_units[0].amount.value
                 }
             });

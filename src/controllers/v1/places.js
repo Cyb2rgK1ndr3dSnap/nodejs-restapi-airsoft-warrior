@@ -73,8 +73,8 @@ const updatePlace = async (req,res) =>{
     const path = req.file.path
     const {id} = req.query
     const {name,description,ubication,latitude,longitude,ambiente} = req.body
-    let image_url = {}
-    let response = "";
+    let image_url;
+    let response;
     try {
         
         if(path){

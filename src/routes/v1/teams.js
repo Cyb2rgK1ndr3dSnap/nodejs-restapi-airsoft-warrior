@@ -26,7 +26,7 @@ router
 
     .get(`:id`, validateId, getTeam)
 
-    .post(`/`,chechAuth, validateCreate, multerUpload.single('image'),createTeam)
+    .post(`/`,chechAuth, multerUpload.single('image'), validateCreate, createTeam)
 
     .put(`/:id`, validateId, validateUpdate, chechAuth, updateTeam)
 

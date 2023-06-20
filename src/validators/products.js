@@ -1,4 +1,4 @@
-const { check } = require("express-validator");
+const { body,check } = require("express-validator");
 const { validateResult } = require("../utils/handleValidator");
 
 const validatePagination = (req, res, next) => {
@@ -18,31 +18,64 @@ const validateId = [
     (req, res, next) => {
         validateResult(req, res, next);
     },
-]
+];
 
 const validateCreate = [
-    check("image").exists().notEmpty(),
-    check("id_category").exists().notEmpty(),
-    check("name").exists().notEmpty(),
-    check("description").exists().notEmpty(),
-    check("price").exists().notEmpty(),
-    check("stock").exists().notEmpty(),
-    check("active").exists().notEmpty()
-]
-
-const validateUpdate = [
-    check("id").exists().notEmpty(),
-    check("image").exists().notEmpty().optional(),
-    check("id_category").exists().notEmpty().optional(),
-    check("name").exists().notEmpty().optional(),
-    check("description").exists().notEmpty().optional(),
-    check("price").exists().notEmpty().optional(),
-    check("stock").exists().notEmpty().optional(),
-    check("active").exists().notEmpty().optional(),
+    check("image").custom((value, {req}) => {
+        var extension = (req.file.mimetype).toLowerCase();
+        console.log(extension)
+        switch (extension) {
+            case 'jpg':
+                return 'jpg';
+            case 'jpeg':
+                return 'jpeg';
+            case  'png':
+                return 'png';
+            case  'image/webp':
+                return 'image/webp';
+            default:
+                return false;
+        }
+    }),
+    //.withMessage('Please only submit pdf documents.'),
+    body("id_category").exists().notEmpty(),
+    body("name").exists().notEmpty(),
+    body("description").exists().notEmpty(),
+    body("price").exists().notEmpty(),
+    body("stock").exists().notEmpty(),
+    body("active").exists().notEmpty(),
     (req, res, next) => {
         validateResult(req, res, next);
     },
-]
+];
+
+const validateUpdate = [
+    check("image").custom((value, {req}) => {
+        var extension = (req.file.mimetype);
+        console.log(extension)
+        switch (extension) {
+            case 'jpg':
+                return 'jpg';
+            case 'jpeg':
+                return 'jpeg';
+            case  'png':
+                return 'png';
+            case  'image/webp':
+                return 'image/webp';
+            default:
+                return false;
+        }
+    }).optional(),
+    body("id_category").exists().notEmpty().optional(),
+    body("name").exists().notEmpty().optional(),
+    body("description").exists().notEmpty().optional(),
+    body("price").exists().notEmpty().optional(),
+    body("stock").exists().notEmpty().optional(),
+    body("active").exists().notEmpty().optional(),
+    (req, res, next) => {
+        validateResult(req, res, next);
+    },
+];
 
 module.exports = {
     validatePagination,

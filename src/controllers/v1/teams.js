@@ -1,5 +1,4 @@
 const {prisma} = require("../../config/connection.js")
-const uuidParse = require('uuid-parse');
 
 const {
     uploads,
@@ -27,7 +26,7 @@ const getTeams = async (req,res) =>{
 
         if(result.length > 0){
             result.forEach( (value, key, map) => {
-                value.id=uuidParse.unparse(value.id);
+                value.id=value.id.toString("hex")
             });
             return res.status(200).json(result)
         }
@@ -40,11 +39,11 @@ const getTeams = async (req,res) =>{
 
 const getTeam = async (req,res) => {
     const {id} = req.query;
-    const bytes = uuidParse.parse(id);
+
     try {
         const result = await prisma.teams.findUnique({
             where:{
-                id:Buffer.from(bytes)
+                id:Buffer.from(id,'hex')
             },
             select:{
                 id:true,
@@ -63,7 +62,7 @@ const getTeam = async (req,res) => {
         })
         
         if(result){
-            result.id = uuidParse.unparse(result.id)
+            result.id = result.id.toString('hex')
             return res.status(200).json(result);
         }
         return res.status(404).json()
@@ -76,12 +75,12 @@ const getTeam = async (req,res) => {
 const createTeam = async (req,res) => {
     const {name,description} = req.body
     const userIdCookie = req.userIdCookie
-    const bytesUser = uuidParse.parse(userIdCookie)
+
     let image_url;
     try {
         const checkExist = await prisma.teams_users.findFirst({
             where:{
-                    id_user:Buffer.from(bytesUser),
+                    id_user:Buffer.from(userIdCookie,'hex'),
                     accepted:true
             },
         })
@@ -156,24 +155,22 @@ const updateTeam = async (req,res) => {
         res.status(500).json({isSuccess:false,error:"Error al actualizar equipo, contacté a soporte"});
     }
 }
-////ELIMINAR EQUIPOS Y DESLIGAR TODOS LOS MIEMBROS DE ESE TEAM
+
 const deleteTeam = async (req,res) => {
     try {
         const id = req.params;
         const userIdCookie = req.body
 
-        const bytes = uuidParse.parse(id)
-
         const check = await prisma.teams.findUnique({
             where:{
-                id:Buffer.from(bytes)
+                id:Buffer.from(id,'hex')
             },
             select:{
                 created_by:true
             }
         })
 
-        const createdBy = uuidParse.unparse(check.created_by)
+        const createdBy = check.created_by.toString('hex')
 
         if(userIdCookie != createdBy) return res.status(400).json({
             isSuccess:false,
@@ -183,12 +180,12 @@ const deleteTeam = async (req,res) => {
         const result = await prisma.$transaction( async prisma =>{
             const members = await prisma.teams_users.deleteMany({
                 where:{
-                    id_team:Buffer.from(bytes)
+                    id_team:Buffer.from(id,'hex')
                 }
             })
 
             const team = await prisma.teams.delete({
-                where:Buffer.from(bytes)
+                where:Buffer.from(id,'hex')
             })
             return {members,team}
         })
@@ -208,13 +205,13 @@ const deleteTeam = async (req,res) => {
 const getProfileTeam = async (req, res) =>{
     try {
         const userIdCookie = req.userIdCookie
-        const bytes = uuidParse.parse(userIdCookie)
+        console.log(userIdCookie)
 
         const result = await prisma.$transaction(async prisma=>{
             const id = await prisma.teams_users.findFirst({
                 where:{
                     id_user:{
-                        equals:Buffer.from(bytes)
+                        equals:Buffer.from(userIdCookie,'hex')
                     }
                 },select:{
                     id_team:true
@@ -238,7 +235,7 @@ const getProfileTeam = async (req, res) =>{
         })
         
         if(result){
-            result.team.id = uuidParse.unparse(result.team.id)
+            result.team.id = result.team.id.toString('hex')
             return res.status(200).json(result.team)
         }
 

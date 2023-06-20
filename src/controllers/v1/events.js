@@ -4,8 +4,6 @@ const {
     deletes
 } = require("../../utils/handleCloudinary.js");
 
-const uuidParse = require('uuid-parse');
-
 const getEvents = async (req,res) =>{
     try {
         const {p,s} = req.query;
@@ -26,7 +24,7 @@ const getEvents = async (req,res) =>{
         });
         if(result.length > 0){
             result.forEach( (value, key, map) => {
-                value.id=uuidParse.unparse(value.id);
+                value.id = value.id.toString('hex')
             });
             return res.status(200).json(result)
         }
@@ -43,10 +41,10 @@ const getEvents = async (req,res) =>{
 const getEvent = async (req,res) =>{
     try {
         const {id} = req.params
-        const bytes = uuidParse.parse(id)
+        //const bytes = uuidParse.parse(id)
         const result = await prisma.events.findUnique({
             where:{
-                id:Buffer.from(bytes)
+                id:Buffer.from(id,'hex')
             },
             select:{
                 name:true,
@@ -68,7 +66,8 @@ const getEvent = async (req,res) =>{
             }
         })
         if(result){
-            result.id = uuidParse.unparse(result.id)
+            //result.id = uuidParse.unparse(result.id)
+            result.id = result.id.toString('hex')
             return res.status(200).json(result)
         }
         return res.status(404).json()
@@ -134,19 +133,40 @@ const createEvent = async (req,res) =>{
 
 const updateEvent = async (req,res) => {
     try {
-        const {id} = req.params
-        const {id_place,description,price,fecha_de_evento} = req.body
-        const bytes = uuidParse.parse(id)
-        const result = await prisma.events.update({
-            where:Buffer.from(bytes),
-            data:{
-                id_place: id_place || undefined,
-                description : description || undefined,
-                price: price || undefined,
-                fecha_de_evento: fecha_de_evento || undefined
+        const {id} = req.params;
+        const {id_place,description,price,fecha_de_evento} = req.body;
+        let image_url;
+        let response;
+
+        if(req.file){
+            const path = req.file.path;
+            const product = await prisma.products.findUnique({
+                where:{
+                    id:Buffer.from(id,'hex')
+                },
+                select:{
+                    image_url:true
+                }
+            })
+            image_url = await uploads(path, 'products');
+            if(!image_url){
+                return res.status(500).json({isSuccess:false,message:"Error al cargar imagen"})
             }
-        })
-        if(result) return res.status(204).json()
+            response = await deletes(product.image_url.id)
+        }
+        if(req.file===undefined || response.response === "ok" || response.response === "not found"){
+            const result = await prisma.events.update({
+                where:Buffer.from(id,'hex'),
+                data:{
+                    id_place: id_place || undefined,
+                    description : description || undefined,
+                    price: price || undefined,
+                    fecha_de_evento: fecha_de_evento || undefined
+                }
+            })
+            if(result) 
+                return res.status(204).json()
+        }
 
         return res.status(500).json({
             isSuccess:false,
@@ -165,10 +185,9 @@ const updateEvent = async (req,res) => {
 const deleteEvent = async (req,res) => {
     try {
         const {id} = req.params
-        const bytes = uuidParse.parse(id)
         const result = await prisma.events.delete({
             where:{
-                id:Buffer.from(bytes)
+                id:Buffer.from(id,'hex')
             }
         })
         if(result) return res.status(204).json()

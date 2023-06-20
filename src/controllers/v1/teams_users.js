@@ -1,8 +1,7 @@
 const {prisma} = require("../../config/connection.js")
-const uuidParse = require('uuid-parse');
+require("dotenv/config");
 
 const getMembers = async (req,res) =>{
-    //const bytes = uuidParse.parse(id_team)
     try {
         const result = await prisma.teams_users.findMany({
             where:{
@@ -38,11 +37,10 @@ const getMembers = async (req,res) =>{
 //MODIFICAR EN OTRO MOMENTO
 const getMember = async (req,res) =>{
     const {id} = req.params
-    const bytes = uuidParse.parse(id)
     try {
         const result = await prisma.teams_users.findMany({
             where:{
-                id_user:Buffer.from(bytes),
+                id_user:Buffer.from(id,'hex'),
             },select:{
                 user:true,
                 team:true
@@ -64,12 +62,10 @@ const getMember = async (req,res) =>{
 const createMemberRequest = async (req,res) =>{
     const {id_team} = req.body
     const userIdCookie = req.userIdCookie
-    const bytesUser = uuidParse.parse(userIdCookie);
-    const bytesTeam = uuidParse.parse(id_team);
     try {
         const checkTeam = await prisma.teams.findFirst({
             where:{
-                id:Buffer.from(bytesTeam)
+                id:Buffer.from(id_team,'hex')
             }
         })
 
@@ -82,11 +78,11 @@ const createMemberRequest = async (req,res) =>{
             where:{
                 OR:[
                     {
-                        id_team:Buffer.from(bytesTeam),
-                        id_user:Buffer.from(bytesUser),
+                        id_team:Buffer.from(id_team,'hex'),
+                        id_user:Buffer.from(userIdCookie,'hex'),
                     },
                     {
-                        id_user:Buffer.from(bytesUser),
+                        id_user:Buffer.from(userIdCookie,'hex'),
                         accepted:true
                     }
                 ]
@@ -107,8 +103,8 @@ const createMemberRequest = async (req,res) =>{
 
         const result = await prisma.teams_users.create({
             data:{
-                id_user:Buffer.from(bytesUser),
-                id_team:Buffer.from(bytesTeam)
+                id_team:Buffer.from(id_team,'hex'),
+                id_user:Buffer.from(userIdCookie,'hex')
             }
         })
 
@@ -134,16 +130,14 @@ const updateMember = async (req,res) =>{
     try {
         const userIdCookie = req.userIdCookie
         const {id} = req.params
-        const bytes = uuidParse.parse(id)
-        const bytesCreated = uuidParse.parse(userIdCookie)
         const action = req.query.action === "1" ? true : false
         const checkTeamOwner = await prisma.teams_users.findFirst({
             where:{
-                id_user:Buffer.from(bytes),
+                id_user:Buffer.from(id,'hex'),
                 team:{
-                    created_by:Buffer.from(bytesCreated)
+                    created_by:Buffer.from(userIdCookie,'hex')
                 },NOT:{
-                    id_user:Buffer.from(bytesCreated)
+                    id_user:Buffer.from(userIdCookie,'hex')
                 }
             },
             include:{
@@ -168,7 +162,7 @@ const updateMember = async (req,res) =>{
                 const member = await prisma.teams_users.update({
                     where:{
                         id_team_id_user:{
-                            id_user:Buffer.from(bytes),
+                            id_user:Buffer.from(id,'hex'),
                             id_team:Buffer.from(checkTeamOwner.team.id)
                         }
                     },
@@ -219,15 +213,13 @@ const deleteMember = async (req, res) =>{
     try {
         const userIdCookie = req.userIdCookie
         const {id} = req.params
-        const bytes = uuidParse.parse(id)
-        const bytesCreated = uuidParse.parse(userIdCookie)
         const checkTeamOwner = await prisma.teams_users.findFirst({
             where:{
-                id_user:Buffer.from(bytes),
+                id_user:Buffer.from(id,'hex'),
                 team:{
-                    created_by:Buffer.from(bytesCreated)
+                    created_by:Buffer.from(userIdCookie,'hex')
                 },NOT:{
-                    id_user:Buffer.from(bytesCreated)
+                    id_user:Buffer.from(userIdCookie,'hex')
                 }
             },
             include:{
@@ -268,15 +260,15 @@ const deleteMember = async (req, res) =>{
 }
 
 const getProfileT_U = async (req, res) => {
+    console.log("ENTROOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
     try {
-        const userIdCookie = req.userIdCookie;
-        const bytes = uuidParse.parse(userIdCookie);
-        
+        const userIdCookie = req.userIdCookie
+        console.log(req.userIdCookie)
         const result = await prisma.$transaction(async prisma =>{
             const team = await prisma.teams_users.findFirst({
                 where:{
                     id_user:{
-                        equals:Buffer.from(bytes)
+                        equals:Buffer.from(userIdCookie,'hex')
                     }
                 },select:{
                     team:{
@@ -290,7 +282,7 @@ const getProfileT_U = async (req, res) => {
                     }
                 }
             })
-            
+            console.log(team)
             if(!team) return null
 
             const members = await prisma.teams_users.findMany({
@@ -313,11 +305,11 @@ const getProfileT_U = async (req, res) => {
         })
 
         result.members.forEach( (value, key, map) => {
-            value.user.id=uuidParse.unparse(value.user.id);
+            value.user.id=value.user.id.toString('hex')
         });
 
         if(result){
-            result.team.team.id = uuidParse.unparse(result.team.team.id)
+            result.team.team.id = result.team.team.id.toString('hex')
             return res.status(200).json({result})
         }
 
@@ -325,7 +317,7 @@ const getProfileT_U = async (req, res) => {
             isSuccess:false,
             message:"Not found, contacté con soporté"
         })
-    } catch (error) {
+    }catch (error) {
         console.log(error)
         res.status(500).json({
             isSuccess:false,

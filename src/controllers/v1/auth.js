@@ -3,6 +3,7 @@ const axios = require("axios")
 const { prisma } = require('../../config/connection.js');
 const uuidParse = require('uuid-parse');
 require("dotenv/config");
+
 const {
     uploads,
     deletes
@@ -123,8 +124,8 @@ const loginUserGoogle = async (req, res) => {
                 },
             })
         }
-        const uuid = uuidParse.unparse(user.id)
-        user.id = uuid
+        //const uuid = uuidParse.unparse(user.id)
+        user.id = user.id.toString('hex')
 
         token = await tokenSign(user)
         cookieUser(req,res,process.env.COOKIE_NAME,token,3600000)
@@ -221,8 +222,8 @@ const loginUser = async (req,res)=>{
 
         if(checkPassword===true){
             delete user.password
-            const uuid = uuidParse.unparse(user.id)
-            user.id = uuid
+            //const uuid = uuidParse.unparse(user.id)
+            user.id = user.id.toString('hex')
             const token = await tokenSign(user)
             cookieUser(req,res,process.env.COOKIE_NAME,token,3600000);
             //return res.redirect(302,`${process.env.UI_ROOT_URI}`);
@@ -312,10 +313,10 @@ const updateUser = async (req,res) => {
 const getProfile = async (req, res) => {
     try {
         const userIdCookie = req.userIdCookie
-        const bytes = uuidParse.parse(userIdCookie)
+        //const bytes = uuidParse.parse(userIdCookie)
         const result = await prisma.users.findUnique({
             where:{
-                id:Buffer.from(bytes)
+                id:Buffer.from(userIdCookie,'hex')
             },
             select:{
                 id:true,
@@ -332,7 +333,7 @@ const getProfile = async (req, res) => {
                 }
             }
         })
-        result.id = uuidParse.unparse(result.id)
+        result.id = result.id.toString('hex')
 
         if(result) return res.status(200).json(result)
 
@@ -348,8 +349,6 @@ const getProfile = async (req, res) => {
 
 const getCookie = async (req, res) => {
     try {
-      //const decoded = await verifyToken(req.cookies[process.env.COOKIE_NAME].token);
-      //return res.status(200).json({token:req.cookies[process.env.COOKIE_NAME].token})
       if(req.cookies[process.env.COOKIE_NAME]){
         return res.status(200).json({isSuccess:true})
       }else{

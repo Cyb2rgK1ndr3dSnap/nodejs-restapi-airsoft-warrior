@@ -4,8 +4,6 @@ const {
     deletes
 } = require("../../utils/handleCloudinary.js");
 
-const uuidParse = require('uuid-parse');
-
 const getProducts = async (req ,res)=>{
     try {
         const {p,tags,s} = req.query;
@@ -29,7 +27,6 @@ const getProducts = async (req ,res)=>{
         
         if(result.length > 0){
             result.forEach( (value, key, map) => {
-                //value.id=uuidParse.unparse(value.id);
                 value.id=value.id.toString("hex")
             });
             return res.status(200).json(result);
@@ -48,7 +45,6 @@ const getProducts = async (req ,res)=>{
 const getProduct = async (req ,res)=>{
     try {
         const{id} = req.params;
-        //const bytes = uuidParse.parse(id);
         const result = await prisma.products.findUnique({
             where: {
                 id:Buffer.from(id,'hex'),
@@ -121,9 +117,9 @@ const createProduct = async (req, res)=>{
 const updateProduct = async (req,res)=>{
     const{id}= req.params;
     const{id_category,name,description,price,stock,active} = req.body;
-    //const bytes = uuidParse.parse(id);
-    let image_url= {};
-    let response = "";
+    let image_url;
+    let response;
+
     try{
         if(req.file){
             const path = req.file.path;
@@ -145,7 +141,7 @@ const updateProduct = async (req,res)=>{
         if(req.file===undefined || response.response === "ok" || response.response === "not found"){
             const result = await prisma.products.update({
                 where : {
-                    id:Buffer.from(bytes)
+                    id:Buffer.from(id,'hex')
                 },
                 data:{
                     id_category:id_category || undefined,
@@ -157,9 +153,8 @@ const updateProduct = async (req,res)=>{
                     active:active || undefined
                 }
             })
-            if(result){
+            if(result)
                 return res.status(204).json()
-            }
         }
         return res.status(500).json({
             isSucces:false,
@@ -174,7 +169,6 @@ const updateProduct = async (req,res)=>{
 const deleteProduct = async (req,res)=>{
     try {
         const{id}= req.params
-        //const bytes = uuidParse.parse(id);
         const result = await prisma.products.findUnique({
             where:{
                 id:Buffer.from(id,'hex'),
@@ -187,7 +181,7 @@ const deleteProduct = async (req,res)=>{
         if(response.response === "ok" || response.response === "not found"){
             const result2 = await prisma.products.delete({
                 where:  {
-                    id:Buffer.from(bytes),
+                    id:Buffer.from(id,'hex'),
                 }
             })   
             if(result2) return res.status(204).json()

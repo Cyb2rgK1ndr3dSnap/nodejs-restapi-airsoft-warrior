@@ -4,8 +4,6 @@ const {
     deletes
 } = require("../../utils/handleCloudinary.js");
 
-const uuidParse = require('uuid-parse');
-
 const getModes = async (req, res) =>{
     try {
         const result = await prisma.modes.findMany({})
@@ -75,14 +73,13 @@ const updateMode = async (req, res)=>{
     try {
         const {id} = req.params;
         const {name,description} = req.body;
-        const bytes = uuidParse.parse(id);
-        let image_url= {};
+        let image_url;
         let response = "";
         if(req.file){
             const path = req.file.path;
             const mode = await prisma.products.findUnique({
                 where:{
-                    id:Buffer.from(bytes)
+                    id:Buffer.from(id,'hex')
                 },
                 select:{
                     image_url:true
@@ -101,7 +98,7 @@ const updateMode = async (req, res)=>{
         if(req.file===undefined || response.response === "ok" || response.response === "not found"){
             const result = prisma.modes.update({
                 where:{
-                    id:Buffer.from(bytes)
+                    id:Buffer.from(id,'hex')
                 },
                 data:{
                     name: name || undefined,
@@ -129,10 +126,9 @@ const updateMode = async (req, res)=>{
 const deleteMode = async (req, res) =>{
     try {
         const{id}= req.params
-        const bytes = uuidParse.parse(id);
         const result = await prisma.modes.findUnique({
             where:{
-                id:Buffer.from(bytes),
+                id:Buffer.from(id,'hex'),
             },
             select: {
                 image_url:true
@@ -142,7 +138,7 @@ const deleteMode = async (req, res) =>{
         if(response.response === "ok" || response.response === "not found"){
             const result2 = await prisma.modes.delete({
                 where:  {
-                    id:Buffer.from(bytes),
+                    id:Buffer.from(id,'hex'),
                 }
             })   
             if(result2) return res.status(204).json()

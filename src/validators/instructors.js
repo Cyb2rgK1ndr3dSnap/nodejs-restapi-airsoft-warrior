@@ -9,7 +9,7 @@ const validatePagination = (req, res, next) => {
 }
 
 const validateId = [
-    check("id").exists().notEmpty().isUUID(),
+    check("id").exists().notEmpty(),
     (req, res, next) => {
         validateResult(req, res, next);
     },
@@ -25,7 +25,6 @@ const validateCreate = [
 ]
 
 const validateUpdate = [
-    check("id").exists().notEmpty(),
     check("video_url").exists().notEmpty().optional(),
     check("description").exists().notEmpty().optional(),
     check("specialist").exists().notEmpty().optional(),

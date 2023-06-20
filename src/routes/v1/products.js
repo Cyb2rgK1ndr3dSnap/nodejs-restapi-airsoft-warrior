@@ -22,7 +22,7 @@ router
 
     .get(`/:id`,validateId,getProduct)
     
-    .post(`/`,validateCreate,multerUpload.single('image'),createProduct)
+    .post(`/`,multerUpload.single('image'), validateCreate, createProduct)
 
     .put(`/:id`,multerUpload.single('image'),validateId,updateProduct)
 

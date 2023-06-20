@@ -22,9 +22,9 @@ router
 
     .get(`/:id`,validateId,getEvent)
 
-    .post(`/`,validateCreate, multerUpload.single("image"),createEvent)
-    //AGREGAR ACTUALIZACIÓN DE IMAGEN
-    .put(`/:id`,validateId,validateUpdate,updateEvent)
+    .post(`/`,multerUpload.single("image"), validateCreate, createEvent)
+    
+    .put(`/:id`,multerUpload.single("image"), validateId, validateUpdate, updateEvent)
 
     .delete(`/:id`,validateId,deleteEvent)
 

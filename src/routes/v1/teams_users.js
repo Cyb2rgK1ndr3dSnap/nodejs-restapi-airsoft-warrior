@@ -15,6 +15,8 @@ const {
 } = require("../../middleware/auth")
 
 router
+    .get(`/profile`, chechAuth, getProfileT_U)
+
     .get(`/`,chechAuth, getMembers)
 
     .get(`/:id`,getMember)
@@ -25,6 +27,4 @@ router
     
     .delete(`/:id`, chechAuth, deleteMember)
 
-    .get(`/profile`, chechAuth, getProfileT_U)
-
-module.exports = router
+module.exports = router;

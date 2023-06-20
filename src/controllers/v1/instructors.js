@@ -1,5 +1,5 @@
-const {prisma} = require("../../config/connection")
-const uuidParse = require('uuid-parse');
+const {prisma} = require("../../config/connection");
+require("dotenv/config");
 
 const getInstructors = async (req, res) => {
     try {
@@ -14,7 +14,7 @@ const getInstructors = async (req, res) => {
                     }
                 }
             },
-            select:{
+            include:{
                 user:{
                     select:{
                         image_url:true,
@@ -29,9 +29,9 @@ const getInstructors = async (req, res) => {
         })
 
         if(result.length > 0){
-            /*result.forEach( (value, key, map) => {
-                value.id_user=uuidParse.unparse(value.id_user);
-            });*/
+            result.forEach( (value, key, map) => {
+                value.id_user= value.id_user.toString('hex');
+            });
             return res.status(200).json(result)
         }
 
@@ -49,11 +49,14 @@ const getInstructors = async (req, res) => {
 const getInstructor = async (req, res) => {
     try {
         const {id} = req.params
-        const bytes = uuidParse.parse(id)
         const result = await prisma.instructors.findUnique({
             where:{
-                id_user:Buffer.from(bytes)
-            },include:{
+                id_user:Buffer.from(id,'hex')
+            },select:{
+                video_url:true,
+                description:true,
+                total:true,
+                specialist:true,
                 user:{
                     select:{
                         image_url:true,
@@ -67,7 +70,7 @@ const getInstructor = async (req, res) => {
             }
         })
         if(result){
-            result.id_user = uuidParse.unparse(result.id_user)
+            //result.id_user = result.id_user.toString('hex')
             return res.status(200).json(result)
         }
         return res.status(404).json(result)
@@ -84,10 +87,9 @@ const createInstructor = async (req, res) => {
     try {
         const {video_url,description,specialist} = req.body
         const userIdCookie = req.userIdCookie
-        const bytes = uuidParse.parse(userIdCookie)
         const instructor = await prisma.instructors.findUnique({
             where:{
-                id_user:Buffer.from(bytes)
+                id_user:Buffer.from(userIdCookie,'hex')
             }
         })
 
@@ -98,7 +100,7 @@ const createInstructor = async (req, res) => {
 
         const result = await prisma.instructors.create({
             data:{
-                id_user:Buffer.from(bytes),
+                id_user:Buffer.from(userIdCookie,'hex'),
                 video_url: video_url || undefined,
                 description,
                 specialist
@@ -128,10 +130,9 @@ const updateInstructor = async (req, res) => {
             message:"No puede actualizar el Perfil de ese instructor"
         })
 
-        const bytes = uuidParse.parse(userIdCookie)
         const result = await prisma.instructors.update({
             where:{
-                id_user:Buffer.from(bytes)
+                id_user:Buffer.from(userIdCookie,'hex')
             },
             data:{
                 video_url: video_url || undefined,
@@ -161,47 +162,17 @@ const deleteInstructor = async (req, res) => {
             message:"No puede eliminar el Perfil de ese instructor"
         })
 
-        const bytes = uuidParse.parse(userIdCookie)
-
         const result = await prisma.instructors.delete({
             where:{
-                id_user:Buffer.from(bytes)
+                id_user:Buffer.from(userIdCookie,'hex')
             }
         })
         
-        if(result) return res.status(204).json()
+        if(result) return res.status(204).json({});
 
         return res.status(500).json({
             isSuccess:false,
             message:"Error al eliminar el Perfil de instructor"
-        })
-
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({
-            isSuccess:false,
-            message:"Error al obtener los instructores, contacté con soporté"
-        })
-    }
-}
-
-const checkProfile = async (req, res) => {
-    try {
-        const userIdCookie = req.userIdCookie
-        const bytes = uuidParse.parse(userIdCookie)
-        const checkExist = await prisma.instructors.findUnique({
-            where:{
-                id_user:Buffer.from(bytes)
-            }
-        })
-        if(checkExist) return res.status(200).json({
-            isSuccess:true,
-            message:"Existé el perfil"
-        });
-
-        return res.status(404).json({
-            isSuccess:false,
-            message:"Existé el perfil"
         });
 
     } catch (error) {
@@ -213,17 +184,15 @@ const checkProfile = async (req, res) => {
     }
 }
 
-const getProfile = async (req, res) => {
+const getProfileUser = async (req, res) => {
     try {
         const userIdCookie = req.userIdCookie
-        const bytes = uuidParse.parse(userIdCookie)
         const result = await prisma.instructors.findUnique({
             where:{
-                id_user:Buffer.from(bytes)
+                id_user:Buffer.from(userIdCookie,'hex')
             },include:{
                 user:{
                     select:{
-                        id:true,
                         image_url:true,
                         name:true,
                         lastname:true,
@@ -234,13 +203,13 @@ const getProfile = async (req, res) => {
                 }
             }
         })
+        
         if(result){
-            const uuid = uuidParse.unparse(result.id_user)
-            result.id_user = uuid
+            result.id_user = result.id_user.toString('hex')
             return res.status(200).json(result)
         }
 
-        return res.status(404).json()
+        return res.status(404).json({})
     } catch (error) {
         console.log(error)
         res.status(500).json({
@@ -256,6 +225,5 @@ module.exports = {
     createInstructor,
     updateInstructor,
     deleteInstructor,
-    checkProfile,
-    getProfile
+    getProfileUser
 }
