@@ -1,4 +1,4 @@
-const { check } = require("express-validator");
+const { check,body } = require("express-validator");
 const { validateResult } = require("../utils/handleValidator");
 
 const validatePagination = (req, res, next) => {
@@ -16,17 +16,47 @@ const validateId = [
 ]
 
 const validateCreate = [
-    check("name").exists().notEmpty(),
-    check("description").exists().notEmpty(),
-    check("image").exists().notEmpty().optional(),
+    check("image").custom((value, {req}) => {
+        var extension = (req.file.mimetype);
+        console.log(extension)
+        switch (extension) {
+            case 'jpg':
+                return 'jpg';
+            case 'jpeg':
+                return 'jpeg';
+            case  'png':
+                return 'png';
+            case  'image/webp':
+                return 'image/webp';
+            default:
+                return false;
+        }
+    }).optional(),
+    body("name").exists().notEmpty(),
+    body("description").exists().notEmpty(),
     (req, res, next) => {
         validateResult(req, res, next);
     },
 ]
 
 const validateUpdate = [
-    check("image").exists().notEmpty().optional(),
-    check("description").exists().notEmpty().optional(),
+    check("image").custom((value, {req}) => {
+        var extension = (req.file.mimetype);
+        console.log(extension)
+        switch (extension) {
+            case 'jpg':
+                return 'jpg';
+            case 'jpeg':
+                return 'jpeg';
+            case  'png':
+                return 'png';
+            case  'image/webp':
+                return 'image/webp';
+            default:
+                return false;
+        }
+    }).optional(),
+    body("description").exists().notEmpty().optional(),
     (req, res, next) => {
         validateResult(req, res, next);
     },

@@ -1,4 +1,4 @@
-const { check } = require("express-validator");
+const { check,body } = require("express-validator");
 const { validateResult } = require("../utils/handleValidator");
 
 const validatePagination = (req, res, next) => {
@@ -8,29 +8,61 @@ const validatePagination = (req, res, next) => {
     next()
 }
 
+const validateId = [
+    check("id").exists().notEmpty(),
+    (req, res, next) => {
+        validateResult(req, res, next);
+    },
+]
+
 const validateCreate = [
-    check("id_place").exists().notEmpty().isInt(),
-    check("description").exists().notEmpty(),
-    check("price").exists().notEmpty().isDecimal(),
-    check("fecha_de_evento").exists().notEmpty(),
-    check("modes").exists().notEmpty().isArray(),
+    check("image").custom((value, {req}) => {
+        var extension = (req.file.mimetype);
+        console.log(extension)
+        switch (extension) {
+            case 'jpg':
+                return 'jpg';
+            case 'jpeg':
+                return 'jpeg';
+            case  'png':
+                return 'png';
+            case  'image/webp':
+                return 'image/webp';
+            default:
+                return false;
+        }
+    }).optional(),
+    body("id_place").exists().notEmpty().isInt(),
+    body("description").exists().notEmpty(),
+    body("price").exists().notEmpty().isDecimal(),
+    body("fecha_de_evento").exists().notEmpty(),
+    body("modes").exists().notEmpty().isArray(),
     (req, res, next) => {
         validateResult(req, res, next);
     },
 ]
 
 const validateUpdate = [
-    check("id_place").exists().notEmpty().isInt().optional(),
-    check("description").exists().notEmpty().optional(),
-    check("price").exists().notEmpty().isDecimal().optional(),
-    check("fecha_de_evento").exists().notEmpty().optional(),
-    (req, res, next) => {
-        validateResult(req, res, next);
-    },
-]
-
-const validateId = [
-    check("id").exists().notEmpty().isUUID(),
+    check("image").custom((value, {req}) => {
+        var extension = (req.file.mimetype);
+        console.log(extension)
+        switch (extension) {
+            case 'jpg':
+                return 'jpg';
+            case 'jpeg':
+                return 'jpeg';
+            case  'png':
+                return 'png';
+            case  'image/webp':
+                return 'image/webp';
+            default:
+                return false;
+        }
+    }).optional(),
+    body("id_place").exists().notEmpty().isInt().optional(),
+    body("description").exists().notEmpty().optional(),
+    body("price").exists().notEmpty().isDecimal().optional(),
+    body("fecha_de_evento").exists().notEmpty().optional(),
     (req, res, next) => {
         validateResult(req, res, next);
     },

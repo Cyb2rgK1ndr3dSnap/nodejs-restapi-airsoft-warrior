@@ -1,4 +1,4 @@
-const { check } = require("express-validator");
+const { check,body } = require("express-validator");
 const { validateResult } = require("../utils/handleValidator");
 
 const validatePagination = (req, res, next) => {
@@ -16,18 +16,18 @@ const validateId = [
 ];
 
 const validateCreate = [
-    check("video_url").exists().notEmpty().optional(),
-    check("description").exists().notEmpty(),
-    check("specialist").exists().notEmpty().isArray(),
+    body("video_url").exists().notEmpty().optional(),
+    body("description").exists().notEmpty(),
+    body("specialist").exists().notEmpty().isArray(),
     (req, res, next) => {
         validateResult(req, res, next);
     },
 ]
 
 const validateUpdate = [
-    check("video_url").exists().notEmpty().optional(),
-    check("description").exists().notEmpty().optional(),
-    check("specialist").exists().notEmpty().optional(),
+    body("video_url").exists().notEmpty().optional(),
+    body("description").exists().notEmpty().optional(),
+    body("specialist").exists().notEmpty().optional(),
     (req, res, next) => {
         validateResult(req, res, next);
     },
