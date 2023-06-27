@@ -31,7 +31,7 @@ const createOrder = async (req, res) => {
     
     await order.forEach(async (value,index,arr) => {
         return result.forEach((valuedb)=>{
-            if(Buffer.compare(Buffer.from(value.id),Buffer.from(valuedb.id))===0){
+            if(Buffer.compare(Buffer.from(value.id,'hex'),Buffer.from(valuedb.id))===0){
                 //console.log(`Cantidad en stock ${valuedb.stock}, cantidad del pedido ${value.quantity}`)
                 if(parseInt(valuedb.stock)>=parseInt(value.quantity)){
                     valuedb.stock = parseInt(value.quantity)
