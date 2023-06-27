@@ -28,16 +28,7 @@ const createOrder = async (req, res) => {
             stock:true
         }
     })
-    /*
-    result.map((x)=>{
-        console.log(x.id.toString('hex'))
-
-        const test = x.id.toString('hex')
-        console.log(x.id)
-        console.log(Buffer.from(test, "hex"))
-    })
-    return
-    */
+    
     await order.forEach(async (value,index,arr) => {
         return result.forEach((valuedb)=>{
             if(Buffer.compare(Buffer.from(value.id),Buffer.from(valuedb.id))===0){
@@ -182,7 +173,7 @@ const captureOrder = async (req, res) =>{
                     }
                 }
             }))
-            products.push({id_products:Buffer.from(bytes),quantity:parseInt(product.quantity)})
+            products.push({id_products:Buffer.from(product.sku,'hex'),quantity:parseInt(product.quantity)})
         })
         
         await prisma.$transaction(async prisma =>{
@@ -211,7 +202,7 @@ const captureOrder = async (req, res) =>{
         });
         //res.status(200).json(orderData.data)
         //### CLEAN COOKIE
-        res.redirect(`${process.env.UI_ROOT_URI}/payed`)
+        return res.redirect(`${process.env.UI_ROOT_URI}/payed`)
     } catch (error) {
         console.log(error)
         res.redirect(`${process.env.UI_ROOT_URI}/cancel`)
