@@ -10,7 +10,7 @@ const cookieUser = async (req,res,cookieName,value,maxAge) =>{
                 domain:`${process.env.COOKIE_SET_DOMAIN}`,
                 maxAge: maxAge,
                 httpOnly: true,
-                //secure: true,
+                secure: true,
                 sameSite:false
             });
     } catch (error) {

@@ -121,7 +121,7 @@ const createOrder = async (req, res) => {
         },
     )
     //.then((response) => res.redirect(response.data.links[1].href))
-    .then((response) => res.status(200).json({data: response.data}))
+    .then((response) => res.status(200).json({url: response.data.links[1].href}))
     }catch(error){
         console.log(`Failed to fetch order`);
         res.status(500).json({isSuccess:false,message:"Algo ha fallado, intentelo de nuevo"})
