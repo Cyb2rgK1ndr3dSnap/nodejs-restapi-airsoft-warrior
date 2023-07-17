@@ -1,4 +1,6 @@
 const { prisma } = require("../../config/connection")
+const { connection } = require("../../config/connectionMysql")
+const uuidParse = require("uuid-parse")
 const axios = require("axios");
 require("dotenv/config")
 
@@ -59,9 +61,9 @@ const createOrder = async (req, res) => {
         "purchase_units":[
             {
                 //"reference_id": "PUHF",
-                "description": "Some description",
-                "custom_id": userIdCookie,
-                "soft_descriptor": "Airsoft_Warrior Buy",
+                "description":"Some description",
+                "custom_id":userIdCookie,
+                "soft_descriptor":"Airsoft_Warrior Buy",
                 "amount": {
                     "currency_code":"USD",
                     "value":total,
@@ -109,7 +111,7 @@ const createOrder = async (req, res) => {
             auth
         }
     )
-    
+
     const payment = await axios
         .post(
             `${process.env.PAYPAL_API}/v2/checkout/orders`, 
@@ -124,8 +126,12 @@ const createOrder = async (req, res) => {
     .then((response) => res.status(200).json({url: response.data.links[1].href}))
     }catch(error){
         console.log(`Failed to fetch order`);
-        res.status(500).json({isSuccess:false,message:"Algo ha fallado, intentelo de nuevo"})
+        return res.status(500).json({isSuccess:false,message:"Algo ha fallado, intentelo de nuevo"})
     }
+}
+
+const cancelOrder = async (req, res) =>{
+    
 }
 
 const captureOrder = async (req, res) =>{
@@ -175,16 +181,24 @@ const captureOrder = async (req, res) =>{
             }))
             products.push({id_products:Buffer.from(product.sku,'hex'),quantity:parseInt(product.quantity)})
         })
-        
+        const bytes = Buffer.from(orderData.data.purchase_units[0].custom_id,'hex')
+        const data = {
+            id_user:Buffer.from(orderData.data.purchase_units[0].custom_id,'utf-8'),
+            total:orderData.data.purchase_units[0].amount.value
+        }
         await prisma.$transaction(async prisma =>{
-            const order = await prisma.orders.create({
-                data:{
-                    id_user:Buffer.from(orderData.data.purchase_units[0].custom_id,'hex'),
-                    total:orderData.data.purchase_units[0].amount.value
-                }
-            });
+            const uuid = uuidParse.unparse(bytes)
+            const total = orderData.data.purchase_units[0].amount.value
+            const q = `INSERT INTO orders(id_user,total) VALUES(UUID_TO_BIN(?),?);`
+            await connection.query(q,[uuid,total])
+            const order = await connection.query("SELECT * FROM orders ORDER BY created_at DESC LIMIT 1;")
+            /*const order = await prisma.orders.create({
+                data
+            })
+            console.log(order)*/
+            console.log(order[0][0].id)
             products.forEach((value)=>{
-                value["id_orders"] = order.id
+                value["id_orders"] = order[0][0].id
             });
 
             await prisma.orders_products.createMany({
@@ -198,20 +212,13 @@ const captureOrder = async (req, res) =>{
                     throw 400
                 }
             }));
-            
         });
-        //res.status(200).json(orderData.data)
-        //### CLEAN COOKIE
         return res.redirect(`${process.env.UI_ROOT_URI}/payed`)
     } catch (error) {
         console.log(error)
-        res.redirect(`${process.env.UI_ROOT_URI}/cancel`)
-        res.status(500).json({isSuccess:false,message:"Error recargé la página, comuniquese con soporte técnico"})
+        return res.redirect(`${process.env.UI_ROOT_URI}/cancel`)
+        //return res.status(500).json({isSuccess:false,message:"Error recargé la página, comuniquese con soporte técnico"})
     }
-}
-
-const cancelOrder = async (req, res) =>{
-    
 }
 
 module.exports = {
